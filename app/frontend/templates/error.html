@@ -1,0 +1,136 @@
+<form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/user/login">
+  {% csrf_token %}
+
+  <head>
+    <meta charset="utf-8">
+
+    <title>Meet All</title>
+    <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet">
+    <style>
+      /*
+                Figma Background for illustrative/preview purposes only.
+                You can remove this style tag with no consequence
+              */
+      body {
+        background: #E5E5E5;
+        margin: auto
+      }
+
+      .Main {
+        overflow: auto;
+        position: relative;
+        margin: auto
+      }
+
+      .Main {
+        background-color: rgba(255, 255, 255, 1);
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+
+      .Header {
+        background-color: rgba(30.00000011175871, 30.00000011175871, 30.00000011175871, 1);
+        width: 100%;
+        height: 100px;
+        position: relative;
+        margin: auto;
+        left: 0px;
+        top: -1px;
+      }
+
+      .MEET_ALL {
+        color: rgba(255, 255, 255, 1);
+        width: 100%;
+        height: 61px;
+        position: absolute;
+        top: 24px;
+        font-family: Inter;
+        text-align: center;
+        font-size: 40px;
+        letter-spacing: 0;
+      }
+
+      .Login_Section {
+        width: 750px;
+        height: 392px;
+        position: relative;
+        margin: auto;
+        text-align: center;
+        top: 30px;
+      }
+
+      .Login_Form {
+        background-color: rgba(255, 255, 255, 1);
+        width: 750px;
+        height: 100;
+        position: absolute;
+        left: 0px;
+        top: 0px;
+      }
+
+      .Login_Form {
+        border: 1px solid rgba(0, 0, 0, 1);
+      }
+
+
+      .Login_Success {
+        background-color: rgba(30.00000011175871, 30.00000011175871, 30.00000011175871, 1);
+        width: 100%;
+        height: 100px;
+        position: relative;
+        margin: auto;
+
+      }
+
+      .Login_Success_Text {
+        color: rgba(255, 255, 255, 1);
+        width: 100%;
+        height: 61px;
+        position: relative;
+        top: 24px;
+        font-family: Inter;
+        text-align: center;
+        font-size: 30px;
+        letter-spacing: 0;
+      }
+
+      .Button {
+        text-align: center;
+      }
+    </style>
+
+  </head>
+
+  <body>
+    <div class=Main>
+      <div class="Header"></div><span class="MEET_ALL">WELCOME TO MEET ALL</span>
+      <div class=Button>
+        <button onclick="window.location.href='{{DOMAIN_URL}}/user/register_form/'" name="Register" type="button" style="background-color: rgba(255, 255, 255, 1);
+                                        width: 200px;
+                                        height: 50px;
+                                        border-radius: 10px;
+                                        top: 10px;
+                                        font-size: 30px;
+                                        text-align: center;
+                                        position: relative;
+                                  ">Register</button>
+        <button onclick="window.location.href='{{DOMAIN_URL}}/user/login_form/'" name="Login" type="button" style="background-color: rgba(255, 255, 255, 1);
+          width: 200px;
+          height: 50px;
+          border-radius: 10px;
+          top: 10px;
+          font-size: 30px;
+          text-align: center;
+          position: relative;
+            ">Login</button>
+      </div>
+
+      <div class=Login_Section>
+        <div class="Login_Form"></div>
+        <div class="Login_Success"><span class="Login_Success_Text">{{ error }}</span></div>
+      </div>
+    </div>
+  </body>
+
+</form>
