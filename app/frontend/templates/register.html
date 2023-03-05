@@ -1,258 +1,39 @@
-<form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/user/">
-  {% csrf_token %}
+{% extends 'base.html' %}
 
-  <head>
-    <meta charset="utf-8">
+{% block content %}
+<div class="w-25 mx-auto">
+  <form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/user/">
+    {% csrf_token %}
 
-    <title>Meet All</title>
-
-    <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet">
-    <style>
-      /*
-                Figma Background for illustrative/preview purposes only.
-                You can remove this style tag with no consequence
-              */
-      body {
-        background: #E5E5E5;
-        margin: auto
-      }
-
-      .Main {
-        overflow: auto;
-        position: relative;
-        margin: auto
-      }
-
-      .Main {
-        background-color: rgba(255, 255, 255, 1);
-        width: 100%;
-        height: 100%;
-        position: relative;
-      }
-
-      .Header {
-        background-color: rgba(30.00000011175871, 30.00000011175871, 30.00000011175871, 1);
-        width: 100%;
-        height: 100px;
-        position: relative;
-        margin: auto;
-        left: 0px;
-        top: -1px;
-      }
-
-      .MEET_ALL {
-        color: rgba(255, 255, 255, 1);
-        width: 100%;
-        height: 61px;
-        position: absolute;
-        top: 24px;
-        font-family: Inter;
-        text-align: center;
-        font-size: 40px;
-        letter-spacing: 0;
-      }
-
-      .Register_Section {
-        width: 750px;
-        height: 392px;
-        position: relative;
-        margin: auto;
-        text-align: center;
-        top: 30px;
-      }
-
-      .Register_Form {
-        background-color: rgba(255, 255, 255, 1);
-        width: 750px;
-        height: 392px;
-        position: absolute;
-        left: 0px;
-        top: 0px;
-      }
-
-      .Register_Form {
-        border: 1px solid rgba(0, 0, 0, 1);
-      }
-
-
-      .First_Name {
-        color: rgba(0, 0, 0, 1);
-        width: 61.999996185302734px;
-        height: 13.066666603088379px;
-        position: absolute;
-        left: 80px;
-        top: 30.4888858795166px;
-        font-family: Inter;
-        text-align: left;
-        font-size: 12px;
-        letter-spacing: 0;
-      }
-
-      .Last_Name {
-        color: rgba(0, 0, 0, 1);
-        width: 61px;
-        height: 13.066666603088379px;
-        position: absolute;
-        left: 80px;
-        top: 95.82221984863281px;
-        font-family: Inter;
-        text-align: left;
-        font-size: 12px;
-        letter-spacing: 0;
-      }
-
-      .Email {
-        color: rgba(0, 0, 0, 1);
-        width: 30.999998092651367px;
-        height: 13.066666603088379px;
-        position: absolute;
-        left: 80px;
-        top: 161.1555633544922px;
-        font-family: Inter;
-        text-align: left;
-        font-size: 12px;
-        letter-spacing: 0;
-      }
-
-      .Password {
-        color: rgba(0, 0, 0, 1);
-        width: 56px;
-        height: 13.066666603088379px;
-        position: absolute;
-        left: 80px;
-        top: 226.4888916015625px;
-        font-family: Inter;
-        text-align: left;
-        font-size: 12px;
-        letter-spacing: 0;
-      }
-
-      .Password_2 {
-        color: rgba(0, 0, 0, 1);
-        width: 75px;
-        height: 13.066666603088379px;
-        position: absolute;
-        left: 80px;
-        top: 291.82220458984375px;
-        font-family: Inter;
-        text-align: left;
-        font-size: 12px;
-        letter-spacing: 0;
-      }
-
-
-      .Submit {
-        text-align: right;
-      }
-
-      .Button {
-        text-align: center;
-      }
-    </style>
-
-  </head>
-
-  <body>
-    <div class=Main>
-      <div class="Header"></div><span class="MEET_ALL">WELCOME TO MEET ALL</span>
-      <div class=Button>
-        <button onclick="window.location.href='{{DOMAIN_URL}}/user/register_form/'" name="Register" type="button" style="background-color:  rgba(30.00000011175871, 30.00000011175871, 30.00000011175871, 1);
-                                        width: 200px;
-                                        height: 50px;
-                                        border-radius: 10px;
-                                        top: 10px;
-                                        font-size: 30px;
-                                        text-align: center;
-                                        position: relative;
-                                        color: rgba(255, 255, 255, 1);
-
-                                  ">Register</button>
-        <button onclick="window.location.href='{{DOMAIN_URL}}/user/login_form/'" name="Login" type="button" style="background-color:  rgba(255, 255, 255, 1);
-          width: 200px;
-          height: 50px;
-          border-radius: 10px;
-          top: 10px;
-          font-size: 30px;
-          text-align: center;
-          position: relative;
-            ">Login</button>
-      </div>
-
-      <div class=Register_Section>
-        <div class="Register_Form"></div>
-        <span class="First_Name">First Name</span>
-        <span class="Last_Name">Last Name</span>
-        <span class="Email">Email</span>
-        <span class="Password">Password</span>
-        <span class="Password_2">Password Confirmation</span>
-        <input id="First_Name_Input" type="text" name="first_name" value="{{ first_name }}" style="background-color:  rgba(255, 255, 255, 1);
-      width: 200px;
-      height: 39.20000076293945px;
-      position: absolute;
-      left: 75px;
-      top: 43.5555534362793px;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;">
-        <input id="Last_Name_Input" type="text" name="last_name" value="{{ last_name }}" style="      background-color:  rgba(255, 255, 255, 1);
-      width: 200px;
-      height: 39.20000076293945px;
-      position: absolute;
-      left: 75px;
-            top: 108.8888931274414px;
-
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;">
-        <input id="Email_Input" type="text" name="email" value="{{ email }}" style="      background-color:  rgba(255, 255, 255, 1);
-      width: 200px;
-      height: 39.20000076293945px;
-      position: absolute;
-      left: 75px;
-      top: 174.2222137451172px;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;">
-        <input id="Password_Input" type="password" name="password" value="{{ password }}" style="      background-color:  rgba(255, 255, 255, 1);
-      width: 200px;
-      height: 39.20000076293945px;
-      position: absolute;
-      left: 75px;
-      top: 239.55555725097656px;
-
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;">
-        <input id="Password_2_Input" type="password" name="password2" value="{{ password2 }}" style="      background-color:  rgba(255, 255, 255, 1);
-      width: 200px;
-      height: 39.20000076293945px;
-      position: absolute;
-      left: 75px;
-            top: 304.8888854980469px;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;">
-        <div class=Submit>
-          <input value="Submit" type="submit" style="background-color:  rgba(255, 255, 255, 1);
-                                                            width: 100px;
-                                                            height: 40px;
-                                                            border-radius: 10px;
-                                                            top: 300px;
-                                                            right: 80px;
-                                                            font-size: 15px;
-                                                            text-align: center;
-                                                            position: relative;
-                                                      ">
-
-        </div>
-      </div>
-
+    <div class="mb-3">
+      <label for="first_name" class="form-label">First Name</label>
+      <input id="first_name" class="form-control" type="text" name="first_name" value="{{ first_name }}" required />
     </div>
-  </body>
 
-</form>
+    <div class="mb-3">
+      <label for="last_name" class="form-label">Last Name</label>
+      <input id="last_name" class="form-control" type="text" name="last_name" value="{{ last_name }}" required />
+    </div>
+
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input id="email" class="form-control" type="email" name="email" value="{{ email }}" required />
+    </div>
+
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input id="password" class="form-control" type="password" name="password" value="{{ password }}" required />
+    </div>
+
+    <div class="mb-3">
+      <label for="password2" class="form-label">Password Confirmation</label>
+      <input id="password2" class="form-control" type="password" name="password2" value="{{ password2 }}" required />
+    </div>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-dark" type="submit">Submit</button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

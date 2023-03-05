@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 import re
 from rest_framework import status, viewsets
@@ -88,11 +89,11 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["GET"])
     def register_form(self, request, *args, **kwargs):
         print(request.user)
-        return render(request, "register.html", {"DOMAIN_URL": DOMAIN_URL})
+        return render(request, "register.html", {"DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True})
 
     @action(detail=False, methods=["GET"])
     def login_form(self, request, *args, **kwargs):
-        return render(request, "login.html", {"DOMAIN_URL": DOMAIN_URL})
+        return render(request, "login.html", {"DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True})
 
     @action(detail=False, methods=["POST"])
     def login(self, request):
@@ -130,7 +131,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["GET"])
     def logout(self, request, *args, **kwargs):
         logout(request)
-        return render(request, "login.html", {"DOMAIN_URL": DOMAIN_URL})
+        return redirect("/user/login_form/", {"DOMAIN_URL": DOMAIN_URL})
 
     @action(detail=False, methods=["get"], name="See Profile")
     def following(self, request, *args, **kwargs):

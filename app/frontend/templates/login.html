@@ -1,199 +1,26 @@
-<form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/user/login/">
-  {% csrf_token %}
+{% extends 'base.html' %}
 
-  <head>
-    <meta charset="utf-8">
+{% block content %}
+<div class="w-25 mx-auto">
+  <form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/user/login/">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input id="email" class="form-control" type="email" name="email" value="{{email}}" required />
+    </div>
 
-    <title>Meet All</title>
-    <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet">
-    <style>
-      /*
-                Figma Background for illustrative/preview purposes only.
-                You can remove this style tag with no consequence
-              */
-      body {
-        background: #E5E5E5;
-        margin: auto
-      }
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input id="password" class="form-control" type="password" name="password" value="{{password}}" required />
+    </div>
 
-      .Main {
-        overflow: auto;
-        position: relative;
-        margin: auto
-      }
+    <div class="d-flex justify-content-end">
+      <a href="{{DOMAIN_URL}}/user/reset_password_form/" class="btn btn-outline-dark" name="Reset Password">
+        Forgot Your Password?
+      </a>
+      <button class="btn btn-dark ms-2" type="submit">Submit</button>
+    </div>
 
-      .Main {
-        background-color: rgba(255, 255, 255, 1);
-        width: 100%;
-        height: 100%;
-        position: relative;
-      }
-
-      .Header {
-        background-color: rgba(30.00000011175871, 30.00000011175871, 30.00000011175871, 1);
-        width: 100%;
-        height: 100px;
-        position: relative;
-        margin: auto;
-        left: 0px;
-        top: -1px;
-      }
-
-      .MEET_ALL {
-        color: rgba(255, 255, 255, 1);
-        width: 100%;
-        height: 61px;
-        position: absolute;
-        top: 24px;
-        font-family: Inter;
-        text-align: center;
-        font-size: 40px;
-        letter-spacing: 0;
-      }
-
-      .Login_Section {
-        width: 750px;
-        height: 392px;
-        position: relative;
-        margin: auto;
-        text-align: center;
-        top: 30px;
-      }
-
-      .Login_Form {
-        background-color: rgba(255, 255, 255, 1);
-        width: 750px;
-        height: 392px;
-        position: absolute;
-        left: 0px;
-        top: 0px;
-      }
-
-      .Login_Form {
-        border: 1px solid rgba(0, 0, 0, 1);
-      }
-
-
-      .Email {
-        color: rgba(0, 0, 0, 1);
-        width: 30.999998092651367px;
-        height: 13.066666603088379px;
-        position: absolute;
-        left: 80px;
-        top: 80px;
-        font-family: Inter;
-        text-align: left;
-        font-size: 12px;
-        letter-spacing: 0;
-      }
-
-      .Password {
-        color: rgba(0, 0, 0, 1);
-        width: 56px;
-        height: 13.066666603088379px;
-        position: absolute;
-        left: 80px;
-        top: 180px;
-        font-family: Inter;
-        text-align: left;
-        font-size: 12px;
-        letter-spacing: 0;
-      }
-
-
-      .Submit {
-        text-align: right;
-      }
-
-      .ResetPassword {
-        text-align: left;
-      }
-
-      .Button {
-        text-align: center;
-      }
-    </style>
-
-  </head>
-
-  <body>
-    <div class=Main>
-      <div class="Header"></div><span class="MEET_ALL">WELCOME TO MEET ALL</span>
-      <div class=Button>
-        <button onclick="window.location.href='{{DOMAIN_URL}}/user/register_form/'" name="Register" type="button" style="background-color:  rgba(255, 255, 255, 1);
-                                        width: 200px;
-                                        height: 50px;
-                                        border-radius: 10px;
-                                        top: 10px;
-                                        font-size: 30px;
-                                        text-align: center;
-                                        position: relative;
-                                  ">Register</button>
-        <button onclick="window.location.href='{{DOMAIN_URL}}/user/login_form/'" name="Login" type="button" style="background: rgba(30.00000011175871, 30.00000011175871, 30.00000011175871, 1);
-          width: 200px;
-          height: 50px;
-          border-radius: 10px;
-          top: 10px;
-          font-size: 30px;
-          text-align: center;
-          position: relative;
-          color: rgba(255, 255, 255, 1);
-            ">Login</button>
-      </div>
-
-      <div class=Login_Section>
-        <div class="Login_Form"></div>
-        <span class="Email">Email</span>
-        <span class="Password">Password</span>
-        <input id="Email_Input" type="text" name="email" value="{{ email }}" style="      background-color:  rgba(255, 255, 255, 1);
-      width: 200px;
-      height: 39.20000076293945px;
-      position: absolute;
-      left: 75px;
-      top: 100px;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;">
-        <input id="Password_Input" type="password" name="password" value="{{ password }}" style="      background-color: rgba(255, 255, 255, 1);
-      width: 200px;
-      height: 39.20000076293945px;
-      position: absolute;
-      left: 75px;
-      top: 200px;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;">
-        <div class=ResetPassword>
-          <button onclick="window.location.href='{{DOMAIN_URL}}/user/reset_password_form/'" name="Reset Password"
-            type="button" style="background: rgba(255, 255, 255, 1);
-                   width: relative;
-                                                                    height: 30px;
-                                                                    border-radius: 10px;
-                                                                    top:275px;
-                                                                    left: 75px;
-                                                                    font-size: 13px;
-                                                                    text-align: left;
-                                                                    position: relative;
-                      ">Forgot Your Password?</button>
-
-          <div class=Submit>
-            <input value="Submit" type="submit" style="background-color: rgba(255, 255, 255, 1);
-                                                                    width: 100px;
-                                                                    height: 40px;
-                                                                    border-radius: 10px;
-                                                                    top: 250px;
-                                                                    right: 80px;
-                                                                    font-size: 15px;
-                                                                    text-align: center;
-                                                                    position: relative;
-                                                              ">
-
-          </div>
-        </div>
-
-      </div>
-  </body>
-
-</form>
+  </form>
+</div>
+{% endblock %}
