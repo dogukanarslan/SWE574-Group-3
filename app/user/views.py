@@ -118,9 +118,8 @@ class UserViewSet(viewsets.ModelViewSet):
             login(request, user)
             # return render (request=request, template_name="loginSuccess.html")
             spaces = Space.objects.all().order_by("-id")
-            return render(
-                request,
-                "spaces.html",
+            return redirect(
+                "/feed/space/",
                 {
                     "spaces": spaces,
                     "owner": user.first_name + " " + user.last_name,

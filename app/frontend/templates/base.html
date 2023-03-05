@@ -23,6 +23,7 @@
           <a class="btn btn-dark" aria-current="page" href="{{DOMAIN_URL}}/user/register_form/">Register</a>
           <a class="btn btn-outline-dark" href="{{DOMAIN_URL}}/user/login_form/">Login</a>
           {% else %}
+          <span>{{owner}}</span>
           <a class="btn btn-outline-dark" aria-current="page" href="{{DOMAIN_URL}}/user/logout/">Logout</a>
           {% endif %}
         </div>
@@ -30,15 +31,81 @@
     </div>
   </nav>
 
-  <div class="wrapper">
-    {% block content %}
+  <div class="container-fluid">
+    {% if not UNPROTECTED_ROUTE %}
+    <div class="row">
+      <!-- FEED SECTION -->
+      <div class="offset-sm-2 col-sm-10">
+        <ul class="nav nav-pills">
+          <li class="nav-item">
+            <a class="nav-link{% if request.path == '/feed/space/'%} active{% endif %}"
+              href="{{DOMAIN_URL}}/feed/space/">Spaces</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link{% if request.path == '/feed/post/'%} active{% endif %}"
+              href="{{DOMAIN_URL}}/feed/post/">Recent Posts</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link{% if request.path == '/feed/space/own_spaces/'%} active{% endif %}"
+              href="{{DOMAIN_URL}}/feed/space/own_spaces/">Your Spaces</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link{% if request.path == '/feed/post/own_posts/'%} active{% endif %}"
+              href="{{DOMAIN_URL}}/feed/post/own_posts/">Your Posts</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link{% if request.path == '/feed/post/liked_posts/'%} active{% endif %}"
+              href="{{DOMAIN_URL}}/feed/post/liked_posts/">Liked Posts</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link{% if request.path == '/feed/post/search_form/'%} active{% endif %}"
+              href="{{DOMAIN_URL}}/feed/post/search_form/">Search</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    {% endif %}
 
-    {% endblock %}
-  </div>
-  <script>
-    feather.replace()
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="row">
+      <!-- MENU SECTION -->
+      {% if not UNPROTECTED_ROUTE %}
+      <div class="col-sm-2">
+        <ul class="nav nav-pills flex-column justify-content-center">
+          <li class="nav-item">
+            <a class="nav-link{% if request.path == '/user/profile_form/'%} active{% endif %}" aria-current="page"
+              href="{{DOMAIN_URL}}/user/profile_form/">Your Profile</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link{% if request.path == '/user/following/'%} active{% endif %}"
+              href="{{DOMAIN_URL}}/user/following/">Following</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link{% if request.path == '/user/followers/'%} active{% endif %}"
+              href="{{DOMAIN_URL}}/user/followers/">Followers</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link{% if request.path == '/user/possible_to_know/'%} active{% endif %}"
+              href="{{DOMAIN_URL}}/user/possible_to_know/">Possible to Know</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link{% if request.path == '/feed/post/bookmarked_posts/'%} active{% endif %}"
+              href="{{DOMAIN_URL}}/feed/post/bookmarked_posts/">Your Bookmarks</a>
+          </li>
+        </ul>
+      </div>
+      {% endif %}
+
+      <div class="{{ UNPROTECTED_ROUTE|yesno:'col-sm-12,col-sm-10'}}">
+        {% block content %}
+
+        {% endblock %}
+      </div>
+    </div>
+
+    <script>
+      feather.replace()
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
