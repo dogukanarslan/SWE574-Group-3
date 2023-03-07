@@ -1,0 +1,26 @@
+<nav id="sidebarMenu" class="h-100">
+    <div class="pt-5">
+        <ul class="nav nav-pills flex-column">
+            <li class="nav-item">
+                <a class="nav-link{% if request.path == '/user/profile_form/'%} active{% endif %}" aria-current="page"
+                    href="{{DOMAIN_URL}}/user/profile_form/">Your Profile</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if request.path == '/user/following/'%} active{% endif %}"
+                    href="{{DOMAIN_URL}}/user/following/">Following</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if request.path == '/user/followers/'%} active{% endif %}"
+                    href="{{DOMAIN_URL}}/user/followers/">Followers</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if request.path == '/user/possible_to_know/'%} active{% endif %}"
+                    href="{{DOMAIN_URL}}/user/possible_to_know/">Possible to Know</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if request.path == '/feed/post/bookmarked_posts/'%} active{% endif %}"
+                    href="{{DOMAIN_URL}}/feed/post/bookmarked_posts/">Your Bookmarks</a>
+            </li>
+        </ul>
+    </div>
+</nav>

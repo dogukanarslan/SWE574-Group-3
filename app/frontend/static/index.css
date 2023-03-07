@@ -1,0 +1,23 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  padding: 32px 0 0;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.1);
+}
+
+.sidebar .nav-link {
+  color: var(--bs-gray-800);
+  font-weight: 500;
+}
+
+.sidebar .nav-link.active {
+  background-color: transparent;
+  color: var(--bs-primary);
+}
+
+.sidebar .nav-link:hover {
+  transition: 0.4s;
+  color: var(--bs-primary);
+}

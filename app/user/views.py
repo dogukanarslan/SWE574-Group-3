@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 import re
 from rest_framework import status, viewsets
@@ -88,11 +89,11 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["GET"])
     def register_form(self, request, *args, **kwargs):
         print(request.user)
-        return render(request, "register.html", {"DOMAIN_URL": DOMAIN_URL})
+        return render(request, "register.html", {"DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True})
 
     @action(detail=False, methods=["GET"])
     def login_form(self, request, *args, **kwargs):
-        return render(request, "login.html", {"DOMAIN_URL": DOMAIN_URL})
+        return render(request, "login.html", {"DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True})
 
     @action(detail=False, methods=["POST"])
     def login(self, request):
@@ -117,9 +118,8 @@ class UserViewSet(viewsets.ModelViewSet):
             login(request, user)
             # return render (request=request, template_name="loginSuccess.html")
             spaces = Space.objects.all().order_by("-id")
-            return render(
-                request,
-                "spaces.html",
+            return redirect(
+                "/feed/space/",
                 {
                     "spaces": spaces,
                     "owner": user.first_name + " " + user.last_name,
@@ -130,7 +130,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["GET"])
     def logout(self, request, *args, **kwargs):
         logout(request)
-        return render(request, "login.html", {"DOMAIN_URL": DOMAIN_URL})
+        return redirect("/user/login_form/", {"DOMAIN_URL": DOMAIN_URL})
 
     @action(detail=False, methods=["get"], name="See Profile")
     def following(self, request, *args, **kwargs):
@@ -171,7 +171,7 @@ class UserViewSet(viewsets.ModelViewSet):
         following_friends=Friends.objects.get(owner=user.id)
         followings=UserListSerializer(following_friends.friend_list.all(),many=True).data
         for friend in friends:
-            followers.append(UserListSerializer(friend.owner))
+            followers.append(UserListSerializer(friend.owner).data)
         return render(
             request,
             "follower.html",
