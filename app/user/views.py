@@ -171,7 +171,7 @@ class UserViewSet(viewsets.ModelViewSet):
         following_friends=Friends.objects.get(owner=user.id)
         followings=UserListSerializer(following_friends.friend_list.all(),many=True).data
         for friend in friends:
-            followers.append(UserListSerializer(friend.owner))
+            followers.append(UserListSerializer(friend.owner).data)
         return render(
             request,
             "follower.html",
