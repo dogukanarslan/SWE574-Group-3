@@ -79,7 +79,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             serializer.save()
             Friends.objects.create(owner=User.objects.get(email=email))
-            return render(request, "login.html", {"DOMAIN_URL": DOMAIN_URL})
+            return render(request, "login.html", {"DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True})
         else:
             args = {}
             args["error"] = "Passwords are not matched."
