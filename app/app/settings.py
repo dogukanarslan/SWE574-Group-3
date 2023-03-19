@@ -17,7 +17,6 @@ from rest_framework import permissions
 # from dotenv import load_dotenv
 # load_dotenv()
 
-
 def get_env_variable(name):
     try:
         return os.environ[name]
@@ -26,13 +25,14 @@ def get_env_variable(name):
         raise Exception(message)
 
 
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
-
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project.settings')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = get_env_variable("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -288,5 +288,5 @@ EMAIL_PORT = 587
 EMAIL_BACKEND = get_env_variable("EMAIL_BACKEND")
 EMAIL_TIMEOUT = 60
 EMAIL_USE_TLS = True
-
 DOMAIN_URL = get_env_variable("DOMAIN_URL")
+

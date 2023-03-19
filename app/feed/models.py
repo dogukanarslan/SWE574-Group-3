@@ -43,11 +43,11 @@ class Post(models.Model):
     platform = models.CharField(
         max_length=300, blank=False, null=False, unique=False, default=""
     )
-    link = models.CharField(
-        max_length=300, blank=False, null=False, unique=False, default=""
-    )
+    #link = models.CharField(
+     #   max_length=300, blank=False, null=False, unique=False, default=""
+    #)
     post_link = models.URLField(
-        max_length=300, blank=False, null=False, unique=False, default=""
+        max_length=300, blank=False, null=False, unique=True, default=""
     )
     label = models.ManyToManyField(Label, blank=True, null=True)
     image = models.FileField(upload_to="posts", blank=True, null=True, unique=False)
@@ -71,7 +71,7 @@ class Post(models.Model):
         User, blank=True, null=True, related_name="liked_posts"
     )
     bookmarked_by = models.ManyToManyField(
-        User, blank=True, null=True, related_name="vookmarked_posts"
+        User, blank=True, null=True, related_name="bookmarked_posts"
     )
 
     def __str__(self):

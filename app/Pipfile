@@ -1,0 +1,30 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "==3.1.1"
+djangorestframework = "<3.12.0,>=3.11.1"
+django-filter = "==2.3.0"
+djangorestframework-jwt = "<1.12.0,>=1.11.0"
+django-jazzmin = "<2.3.0,>=2.2.11"
+django-import-export = ">=2.4.0,<2.5.0"
+django-resized = "<0.4.0,>=0.3.11"
+django-cors-headers = "<3.6.0,>=3.5.0"
+django-credit-cards = ">=0.4.1"
+django-ckeditor = "<6.1.0,>=6.0.0"
+django-elasticsearch-dsl-drf = ">=0.21"
+django-modeltranslation = ">=0.16.2"
+psycopg2-binary = "*"
+pillow = ">=7.2.0,<7.3.0"
+drf-yasg = "<1.18.0,>=1.17.1"
+cryptography = "*"
+flake8 = ">=3.6.0,<3.7.0"
+boto3 = "==1.17.1"
+django-storages = "==1.11.1"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
