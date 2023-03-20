@@ -1,0 +1,13 @@
+<div class="card mt-2">
+    <div class="card-body">
+        <h5 class="card-title">{{user.first_name}} {{user.last_name}}</h5>
+        <div class="d-flex justify-content-end">
+            {% if user in followings %}
+            <a href="{{DOMAIN_URL}}/user/{{user.id}}/unfollow/" class="btn btn-outline-dark">Unfollow</a>
+            {% else %}
+            <a href="{{DOMAIN_URL}}/user/{{user.id}}/follow/" class="btn btn-outline-dark">Follow</a>
+            {% endif %}
+            <a href="{{DOMAIN_URL}}/feed/space/{{user.id}}/person_spaces/" class="btn btn-dark ms-2">View Posts</a>
+        </div>
+    </div>
+</div>

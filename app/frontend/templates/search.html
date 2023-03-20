@@ -26,6 +26,13 @@
     </label>
   </div>
 
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" id="user_check_box" name="user_check_box" value="User">
+    <label class="form-check-label" for="user_check_box">
+      Users
+    </label>
+  </div>
+
   <button class="btn btn-dark">Search</button>
 </form>
 
@@ -68,6 +75,10 @@
   </div>
 
 </div>
+{% endfor %}
+
+{% for user in users %}
+{% include '_user.html' %}
 {% endfor %}
 
 {% endblock %}

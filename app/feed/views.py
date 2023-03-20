@@ -379,14 +379,16 @@ class PostViewSet(viewsets.ModelViewSet):
         search_keyword = data["search_keyword"]
         space_check_box = data.get("space_check_box")
         post_check_box = data.get("post_check_box")
+        user_check_box = data.get("user_check_box")
 
-        if space_check_box and not post_check_box:
+        if space_check_box and not (post_check_box and user_check_box):
             space_data = Space.objects.filter(
             Q(title__contains=search_keyword) | Q(description__contains=search_keyword)
         )   
             post_data=None
+            user_data=None
 
-        elif post_check_box and not space_check_box:
+        elif post_check_box and not (space_check_box and user_check_box):
             post_data = Post.objects.filter(
                 Q(title__contains=search_keyword)
                 | Q(description__contains=search_keyword)
@@ -396,6 +398,14 @@ class PostViewSet(viewsets.ModelViewSet):
                 | Q(label__name__contains=search_keyword)
             )
             space_data=None
+            user_data=None
+        elif user_check_box and not (space_check_box and post_check_box):
+            user_data=User.objects.filter(
+                Q(first_name__contains=search_keyword)
+                | Q(last_name__contains=search_keyword))
+            space_data=None
+            post_data=None
+
         else:
             space_data = Space.objects.filter(
             Q(title__contains=search_keyword) | Q(description__contains=search_keyword)
@@ -408,8 +418,13 @@ class PostViewSet(viewsets.ModelViewSet):
                 | Q(space__title__contains=search_keyword)
                 | Q(label__name__contains=search_keyword)
             )
+            user_data=User.objects.filter(
+                Q(first_name__contains=search_keyword)
+                | Q(last_name__contains=search_keyword))
+
         posts = PostListSerializer(post_data, many=True).data
         spaces = SpaceListSerializer(space_data, many=True).data
+        users = UserListSerializer(user_data, many=True).data
 
         # return Response({"detail":"Liked succesfully"},status=200)
         return render(
@@ -418,6 +433,7 @@ class PostViewSet(viewsets.ModelViewSet):
             {
                 "posts": posts,
                 "spaces": spaces,
+                "users": users,
                 "owner": user.first_name + " " + user.last_name,
                 "DOMAIN_URL": DOMAIN_URL,
             },
