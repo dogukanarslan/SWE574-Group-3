@@ -1,9 +1,9 @@
 <div class="card mt-2">
     <div class="row g-0">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <img src="{{ post.image }}" alt="Post" class="img-fluid rounded-start">
         </div>
-        <div class="col-md-8">
+        <div class="col-md-9">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title">{{ post.title}}</h5>
@@ -20,7 +20,7 @@
                 </div>
                 <a href="{{post.post_link}}" target="_blank">{{post.post_link}}</a>
                 <div class="d-flex mt-2">
-                    <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/" class="btn btn-sm btn-outline-dark ms-2">See
+                    <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/" class="btn btn-sm btn-outline-dark">See
                         Details</a>
                     {% if post in user_liked_posts %}
                     <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/undo_like_post/"
