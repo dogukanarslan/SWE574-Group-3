@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="modal fade" id="labelModal" role="dialog">
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add Label</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        {% for label in labels %}
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="label" name="label" value="{{label.id}}">
+          <label class="form-check-label" for="label">
+            {{label}}
+          </label>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% for post in posts %}
+{% include '_post.html' %}
+{% endfor %}
+
+{% endblock %}

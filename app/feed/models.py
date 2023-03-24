@@ -1,5 +1,7 @@
 from django.db import models
 from user.models import User
+import uuid
+
 
 # Create your models here.
 
@@ -43,14 +45,12 @@ class Post(models.Model):
     platform = models.CharField(
         max_length=300, blank=False, null=False, unique=False, default=""
     )
-    link = models.CharField(
-        max_length=300, blank=False, null=False, unique=False, default=""
-    )
     post_link = models.URLField(
         max_length=300, blank=False, null=False, unique=False, default=""
-    )
+    )    
+    post_uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     label = models.ManyToManyField(Label, blank=True, null=True)
-    image = models.FileField(upload_to="posts", blank=True, null=True, unique=False)
+    image = models.ImageField(upload_to="posts", blank=True, null=True, unique=False)
     is_private = models.BooleanField(null=True, blank=True, default=False)
     created_time = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(
@@ -71,7 +71,7 @@ class Post(models.Model):
         User, blank=True, null=True, related_name="liked_posts"
     )
     bookmarked_by = models.ManyToManyField(
-        User, blank=True, null=True, related_name="vookmarked_posts"
+        User, blank=True, null=True, related_name="bookmarked_posts"
     )
 
     def __str__(self):

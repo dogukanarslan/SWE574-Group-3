@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -8,10 +8,13 @@ from rest_framework.decorators import action
 from .serializers import *
 from .models import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
+from django.urls import reverse
+from django.http import HttpResponseBadRequest
 from user.models import User
 from app.settings import DOMAIN_URL
 from django.db.models import Q
+from django.template.loader import render_to_string
+from django import forms
 
 # Create your views here.
 
@@ -137,7 +140,6 @@ class SpaceViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-
 class LabelViewSet(viewsets.ModelViewSet):
     serializer_class = LabelSerializer
     queryset = Label.objects.all()
@@ -154,6 +156,12 @@ class LabelViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
+class ConfirmDuplicateForm(forms.Form):
+    confirm = forms.BooleanField(
+        required=False,
+        initial=False,
+        label="Are you sure you want to create a duplicate post?",
+    )
 
 class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostCreateSerializer
@@ -162,64 +170,74 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         request.data._mutable = True
-        print(request.data)
         user = User.objects.filter(id=request.user.id).first()
         request.data["owner"] = user.id
+        data = request.data.copy()  # Make a copy of the original data
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        # return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-        data = Post.objects.all().order_by("-id")
-        posts = PostListSerializer(data, many=True).data
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data      
-        return render(
-            request,
-            "posts.html",
-            {
-                "posts": posts,
-                "user_liked_posts":user_liked_posts,
-                "user_bookmarked_posts":user_bookmarked_posts,
-                "owner": user.first_name + " " + user.last_name,
-                "DOMAIN_URL": DOMAIN_URL,
-            },
-        )
-
-    @action(detail=True, methods=["get"], name="Like Post")
-    def like_post(self, request, pk=None):
-        user = User.objects.filter(id=request.user.id).first()
-        post = self.get_object()
-        post.liked_by.add(user)
-        post.save()
-        data = Post.objects.all().order_by("-id")
-        posts = PostListSerializer(data, many=True).data
-        labels=Label.objects.all()
-
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
-        if post.space:
-            space_obj = Space.objects.get(id=post.space.id)
-            space = SpaceListSerializer(space_obj).data
-            return render(
-                request,
-                "spacePosts.html",
-                {
-                    "space":space,
-                    "posts": posts,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
+        # check if a post with the same link already exists
+        validated_data = serializer.validated_data
+        post_link = validated_data.get('post_link')
+        existing_post = Post.objects.filter(post_link=post_link).first()
+        
+        if existing_post and Post.objects.filter(post_link=post_link).exists():
+            confirm_form = ConfirmDuplicateForm(request.POST or None)
+            if request.method == 'POST':
+                print("test1")
+                if confirm_form.is_valid():
+                    print("test3")
+                    if confirm_form.cleaned_data['confirm']:
+                    #request.data = data
+                    #request.data._mutable = False
+                        user = User.objects.filter(id=request.user.id).first()
+                        request.data["owner"] = user.id
+                        serializer = self.get_serializer(data=request.data)
+                        serializer.is_valid(raise_exception=True)
+                        print(request.data, "test2")
+                        serializer.save()
+                        headers = self.get_success_headers(serializer.data)
+                        data = Post.objects.all().order_by("-id")
+                        posts = PostListSerializer(data, many=True).data
+                        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
+                        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data 
+                        return render(
+                            request,
+                            "posts.html",
+                            {
+                                "posts": posts,
+                                "user_liked_posts":user_liked_posts,
+                                "user_bookmarked_posts":user_bookmarked_posts,
+                                "owner": user.first_name + " " + user.last_name,
+                                "DOMAIN_URL": DOMAIN_URL,
+                            },
+                        )
+                    else:
+                        # If the user cancels, show the confirmation form again
+                        return render(
+                            request,
+                            "confirm_duplicate.html",
+                            {"form": confirm_form}
+                        )
+            else:
+                return render(
+                    request,
+                    "confirm_duplicate.html",
+                    {"form": confirm_form}
+                )
         else:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            data = Post.objects.all().order_by("-id")
+            posts = PostListSerializer(data, many=True).data
+            user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
+            user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data      
             return render(
                 request,
                 "posts.html",
                 {
                     "posts": posts,
-                    "labels": labels,
                     "user_liked_posts":user_liked_posts,
                     "user_bookmarked_posts":user_bookmarked_posts,
                     "owner": user.first_name + " " + user.last_name,
@@ -227,6 +245,11 @@ class PostViewSet(viewsets.ModelViewSet):
                 },
             )
 
+
+        
+
+
+           
 
     @action(detail=True, methods=["get"], name="Like Post")
     def undo_like_post(self, request, pk=None):
@@ -659,4 +682,3 @@ class PostViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
-

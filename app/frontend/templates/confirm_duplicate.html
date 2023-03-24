@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">Bu bağlantıya sahip bir gönderi zaten mevcut</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p>Bu bağlantıya sahip bir gönderi zaten mevcut. Yine de bu gönderiyi paylaşmak istediğinize emin misiniz?</p>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary" value="confirmed">Evet</button>
+            <a href="{{DOMAIN_URL}}/feed/post/" class="btn btn-secondary" data-dismiss="modal">Hayır</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
