@@ -19,7 +19,7 @@ from app.settings import DOMAIN_URL
 def index(request):
     print(request.user)
     spaces = Space.objects.all()
-    return render(request, "main.html", {"spaces": spaces, "DOMAIN_URL": DOMAIN_URL})
+    return render(request, "main.html", {"spaces": spaces, "DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True})
 
 
 class UserViewSet(viewsets.ModelViewSet):
