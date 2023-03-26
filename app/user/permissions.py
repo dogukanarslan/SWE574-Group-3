@@ -35,6 +35,6 @@ class IsModeratorPermission(BasePermission):
     """
 
     def has_permission(self, request, view):
-        if int(request.parser_context['kwargs'].get('pk')) is request.user.id:
+        if Space.objects.get(id=int(request.parser_context['kwargs'].get('pk'))).moderator.id == request.user.id:
             return True
         return False
