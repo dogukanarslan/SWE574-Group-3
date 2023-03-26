@@ -2,7 +2,7 @@ from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import ValidationError
 from rest_framework import exceptions
 from django.utils.translation import gettext_lazy as _
-
+from feed.models import Space
 
 """
 There are 3 different user groups: 
@@ -24,7 +24,7 @@ class IsSpaceOwnerPermission(BasePermission):
     """
 
     def has_permission(self, request, view):
-        if int(request.parser_context['kwargs'].get('pk')) is request.user.id:
+        if Space.objects.get(id=int(request.parser_context['kwargs'].get('pk'))).owner.id == request.user.id:
             return True
         return False
 
