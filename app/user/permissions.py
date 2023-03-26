@@ -27,3 +27,14 @@ class IsSpaceOwnerPermission(BasePermission):
         if int(request.parser_context['kwargs'].get('pk')) is request.user.id:
             return True
         return False
+
+class IsModeratorPermission(BasePermission):
+
+    """
+    Only for the operations that "Moderator" can, i.e., for deleting posts.
+    """
+
+    def has_permission(self, request, view):
+        if int(request.parser_context['kwargs'].get('pk')) is request.user.id:
+            return True
+        return False
