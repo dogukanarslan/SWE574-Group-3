@@ -18,6 +18,6 @@ cryptography
 flake8>=3.6.0,<3.7.0
 boto3 == 1.17.1
 django-storages == 1.11.1
-
+python_dotenv
 
 
