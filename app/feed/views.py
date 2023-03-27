@@ -10,6 +10,7 @@ from .models import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.urls import reverse
 from django.http import HttpResponseBadRequest
+from user.permissions import IsSpaceOwnerPermission, IsModeratorPermission
 from user.models import User
 from app.settings import DOMAIN_URL
 from django.db.models import Q
@@ -79,6 +80,22 @@ class SpaceViewSet(viewsets.ModelViewSet):
             },
         )
 
+    @action(detail=True, methods=["get"], name="Add Moderator")
+    def add_moderator(self, request, pk=None):
+        return Response("Added successfully", status=200)
+
+    @action(detail=True, methods=["get"], name="Delete Post")
+    def delete_post(self, request, pk=None):
+        return Response("Deleted successfully from the space.", status=200)
+
+    @action(detail=True, methods=["get"], name="Approve User")
+    def approve_user(self, request, pk=None):
+        return Response("Approved successfully.", status=200)
+
+    @action(detail=True, methods=["get"], name="Reject User")
+    def reject_user(self, request, pk=None):
+        return Response("Rejected successfully.", status=200)
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
@@ -136,6 +153,10 @@ class SpaceViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == "retrieve" or self.action == "list":
             permission_classes = [AllowAny]
+        elif self.action == "add_moderator":
+            permission_classes = [IsSpaceOwnerPermission]
+        elif self.action in ['delete_post','approve_user','reject_user']:
+            permission_classes = [IsSpaceOwnerPermission,IsModeratorPermission]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]

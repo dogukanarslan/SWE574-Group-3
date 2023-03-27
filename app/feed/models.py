@@ -21,7 +21,10 @@ class Space(models.Model):
         unique=False,
         on_delete=models.CASCADE,
     )
-
+    moderator = models.ManyToManyField(
+        User, blank=True, null=True, related_name="moderator_of_spaces"
+    )
+    
     def __str__(self):
         return self.title
 
