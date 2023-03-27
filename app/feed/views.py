@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 from .serializers import *
 from .models import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from user.permissions import IsSpaceOwnerPermission
+from user.permissions import IsSpaceOwnerPermission, IsModeratorPermission
 from user.models import User
 from app.settings import DOMAIN_URL
 from django.db.models import Q
@@ -84,11 +84,11 @@ class SpaceViewSet(viewsets.ModelViewSet):
     def delete_post(self, request, pk=None):
         return Response("Deleted successfully from the space.", status=200)
 
-    @action(detail=True, methods=["get"], name="Delete Post")
+    @action(detail=True, methods=["get"], name="Approve User")
     def approve_user(self, request, pk=None):
         return Response("Approved successfully.", status=200)
 
-    @action(detail=True, methods=["get"], name="Delete Post")
+    @action(detail=True, methods=["get"], name="Reject User")
     def reject_user(self, request, pk=None):
         return Response("Rejected successfully.", status=200)
 
@@ -152,7 +152,7 @@ class SpaceViewSet(viewsets.ModelViewSet):
         elif self.action == "add_moderator":
             permission_classes = [IsSpaceOwnerPermission]
         elif self.action in ['delete_post','approve_user','reject_user']:
-            permission_classes = [IsSpaceOwnerPermission]
+            permission_classes = [IsSpaceOwnerPermission,IsModeratorPermission]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
