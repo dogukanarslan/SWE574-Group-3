@@ -254,7 +254,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], name="Reset Password")
     def reset_password_form(self, request, *args, **kwargs):
-        return render(request, "resetPasswordRequest.html", {"DOMAIN_URL": DOMAIN_URL})
+        return render(request, "resetPasswordRequest.html", {"DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True})
 
     @action(detail=False, methods=["post"], name="Reset Password")
     def reset_password_request(self, request, *args, **kwargs):
@@ -319,7 +319,7 @@ class UserViewSet(viewsets.ModelViewSet):
             args["DOMAIN_URL"] = DOMAIN_URL
             args["owner"] = user.first_name + " " + user.last_name
 
-            return render(request, "changePasswordError.html", args)
+            return render(request, "changePassword.html", args)
 
         if user.check_password(data["old_password"]) == False:
             args = {}
@@ -327,14 +327,14 @@ class UserViewSet(viewsets.ModelViewSet):
             args["DOMAIN_URL"] = DOMAIN_URL
             args["owner"] = user.first_name + " " + user.last_name
 
-            return render(request, "changePasswordError.html", args)
+            return render(request, "changePassword.html", args)
 
         if data["password"] != data["password2"]:
             args = {}
             args["error"] = "New passwords do not match"
             args["owner"] = user.first_name + " " + user.last_name
             args["DOMAIN_URL"] = DOMAIN_URL
-            return render(request, "changePasswordError.html", args)
+            return render(request, "changePassword.html", args)
 
         user.set_password(data["password"])
         user.save()
