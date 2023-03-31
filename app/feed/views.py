@@ -137,7 +137,7 @@ class SpaceViewSet(viewsets.ModelViewSet):
             )
         else:
             return render(
-                request, "mainPosts.html", {"space": data, "DOMAIN_URL": DOMAIN_URL}
+                request, "mainPosts.html", {"space": data, "DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True}
             )
 
     def get_serializer_class(self, *args, **kwargs):
@@ -492,7 +492,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 )
         else:
             return render(
-                request, "mainPosts.html", {"space": data, "DOMAIN_URL": DOMAIN_URL}
+                request, "mainPosts.html", {"space": data, "DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True}
             )
 
     @action(detail=True, methods=["post"], name="Like Post")
@@ -587,7 +587,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 )
         else:
             return render(
-                request, "mainPosts.html", {"space": data, "DOMAIN_URL": DOMAIN_URL}
+                request, "mainPosts.html", {"space": data, "DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True}
             )
     @action(detail=True, methods=["post"], name="Like Post")
     def edit(self, request, pk=None):
