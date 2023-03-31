@@ -2,24 +2,28 @@
     <div class="pt-5">
         <ul class="nav nav-pills flex-column">
             <li class="nav-item">
-                <a class="nav-link{% if request.path == '/user/profile_form/'%} active{% endif %}" aria-current="page"
-                    href="{{DOMAIN_URL}}/user/profile_form/">Your Profile</a>
+                <a class="nav-link{% if request.path == '/feed/space/'%} active{% endif %}"
+                    href="{{DOMAIN_URL}}/feed/space/">Spaces</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link{% if request.path == '/user/following/'%} active{% endif %}"
-                    href="{{DOMAIN_URL}}/user/following/">Following</a>
+                <a class="nav-link{% if request.path == '/feed/post/'%} active{% endif %}"
+                    href="{{DOMAIN_URL}}/feed/post/">Recent Posts</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link{% if request.path == '/user/followers/'%} active{% endif %}"
-                    href="{{DOMAIN_URL}}/user/followers/">Followers</a>
+                <a class="nav-link{% if request.path == '/feed/space/own_spaces/'%} active{% endif %}"
+                    href="{{DOMAIN_URL}}/feed/space/own_spaces/">Your Spaces</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link{% if request.path == '/user/possible_to_know/'%} active{% endif %}"
-                    href="{{DOMAIN_URL}}/user/possible_to_know/">Possible to Know</a>
+                <a class="nav-link{% if request.path == '/feed/post/own_posts/'%} active{% endif %}"
+                    href="{{DOMAIN_URL}}/feed/post/own_posts/">Your Posts</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link{% if request.path == '/feed/post/bookmarked_posts/'%} active{% endif %}"
-                    href="{{DOMAIN_URL}}/feed/post/bookmarked_posts/">Your Bookmarks</a>
+                <a class="nav-link{% if request.path == '/feed/post/liked_posts/'%} active{% endif %}"
+                    href="{{DOMAIN_URL}}/feed/post/liked_posts/">Liked Posts</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link{% if request.path == '/feed/post/search_form/'%} active{% endif %}"
+                    href="{{DOMAIN_URL}}/feed/post/search_form/">Search</a>
             </li>
         </ul>
     </div>
