@@ -182,18 +182,43 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         request.data._mutable = True
-        print(request.data)
+
+        post_link = request.data.get("post_link")
+        existing_post = Post.objects.filter(post_link=post_link).first()
+        is_confirmed = request.data.get("is_confirmed")
         user = User.objects.filter(id=request.user.id).first()
         request.data["owner"] = user.id
+        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
+        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data     
+
+        if existing_post and not is_confirmed:
+            data = Post.objects.all().order_by("-id")
+            posts = PostListSerializer(data, many=True).data
+            return render(
+                request,
+                "posts.html",
+                {
+                    "posts": posts,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                    "title": request.data.get("title"),
+                    "description": request.data.get("description"),
+                    "platform": request.data.get("platform"),
+                    "post_link": request.data.get("post_link"),
+                    "confirmation_modal": True
+                },
+            )
+
+        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        # return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         data = Post.objects.all().order_by("-id")
         posts = PostListSerializer(data, many=True).data
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data      
+        headers = self.get_success_headers(serializer.data)
+        # return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         return render(
             request,
             "posts.html",
@@ -640,6 +665,8 @@ class PostViewSet(viewsets.ModelViewSet):
         data = Post.objects.all().order_by("-id")
         labels = Label.objects.all()
         posts = PostListSerializer(data, many=True).data
+        print('is_confirmed:', request.data.get("is_confirmed"))
+
         if request.user.is_anonymous == False:
             user = request.user
             user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
