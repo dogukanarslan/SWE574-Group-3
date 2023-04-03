@@ -36,6 +36,31 @@
     Label</button>
 
   <button class="btn btn-dark">Submit</button>
+
+  <div class="modal fade" id="confirmationModal" role="dialog">
+    <div class="modal-dialog">
+
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Add existing link</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          This link already exists.
+        </div>
+
+        <div class="modal-footer">
+          {% if confirmation_modal %}
+          <input type="hidden" name="is_confirmed" value="True">
+          {% endif %}
+          <button class="btn btn-outline-dark" data-bs-dismiss="modal">Yes</button>
+          <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">No</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </form>
 
 <div class="modal fade" id="labelModal" role="dialog">
@@ -69,5 +94,14 @@
 {% for post in posts %}
 {% include '_post.html' %}
 {% endfor %}
+
+<script>
+  const confirmationModal = new bootstrap.Modal('#confirmationModal')
+  const isConfirmed = '{{confirmation_modal}}'
+
+  if (isConfirmed) {
+    confirmationModal.show();
+  }
+</script>
 
 {% endblock %}
