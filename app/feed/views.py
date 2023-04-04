@@ -428,44 +428,46 @@ class PostViewSet(viewsets.ModelViewSet):
 
         if space_check_box and not (post_check_box and user_check_box):
             space_data = Space.objects.filter(
-            Q(title__contains=search_keyword) | Q(description__contains=search_keyword)
-        )   
+            Q(title__icontains=search_keyword) | Q(description__contains=search_keyword)
+        ).distinct()
             post_data=None
             user_data=None
 
         elif post_check_box and not (space_check_box and user_check_box):
             post_data = Post.objects.filter(
-                Q(title__contains=search_keyword)
-                | Q(description__contains=search_keyword)
-                | Q(platform__contains=search_keyword)
-                | Q(link__contains=search_keyword)
-                | Q(space__title__contains=search_keyword)
-                | Q(label__name__contains=search_keyword)
-            )
+                Q(title__icontains=search_keyword)
+                | Q(description__icontains=search_keyword)
+                | Q(platform__icontains=search_keyword)
+                | Q(link__icontains=search_keyword)
+                | Q(space__title__icontains=search_keyword)
+                | Q(label__name__icontains=search_keyword)
+            ).distinct()
             space_data=None
             user_data=None
         elif user_check_box and not (space_check_box and post_check_box):
             user_data=User.objects.filter(
-                Q(first_name__contains=search_keyword)
-                | Q(last_name__contains=search_keyword))
+                Q(first_name__icontains=search_keyword)
+                | Q(last_name__icontains=search_keyword)).distinct()
+            
             space_data=None
             post_data=None
 
         else:
             space_data = Space.objects.filter(
             Q(title__contains=search_keyword) | Q(description__contains=search_keyword)
-            )
+            ).distinct()
             post_data = Post.objects.filter(
-                Q(title__contains=search_keyword)
-                | Q(description__contains=search_keyword)
-                | Q(platform__contains=search_keyword)
-                | Q(link__contains=search_keyword)
-                | Q(space__title__contains=search_keyword)
-                | Q(label__name__contains=search_keyword)
-            )
+                Q(title__icontains=search_keyword)
+                | Q(description__icontains=search_keyword)
+                | Q(platform__icontains=search_keyword)
+                | Q(link__icontains=search_keyword)
+                | Q(space__title__icontains=search_keyword)
+                | Q(label__name__icontains=search_keyword)
+            ).distinct()
             user_data=User.objects.filter(
-                Q(first_name__contains=search_keyword)
-                | Q(last_name__contains=search_keyword))
+                Q(first_name__icontains=search_keyword)
+                | Q(last_name__icontains=search_keyword)
+                | Q(description__icontains=search_keyword)).distinct()
 
         posts = PostListSerializer(post_data, many=True).data
         spaces = SpaceListSerializer(space_data, many=True).data

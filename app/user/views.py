@@ -224,12 +224,14 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"], name="See Profile")
     def profile_form(self, request, *args, **kwargs):
         user = request.user
+        user_data=UserListSerializer(user).data
         return render(
             request,
             "profilePage.html",
             {
                 "owner": user.first_name + " " + user.last_name,
                 "DOMAIN_URL": DOMAIN_URL,
+                "user_data": user_data,
             },
         )
 
@@ -237,11 +239,15 @@ class UserViewSet(viewsets.ModelViewSet):
     def profile_update_request(self, request, *args, **kwargs):
         user = request.user
         data = request.data
+        user_data=UserListSerializer(user).data
         if request.data["first_name"]:
             user.first_name = request.data["first_name"]
             user.save()
         if request.data["last_name"]:
             user.last_name = request.data["last_name"]
+            user.save()
+        if request.data["description"]:
+            user.description = request.data["description"]
             user.save()
         return render(
             request,
@@ -249,6 +255,7 @@ class UserViewSet(viewsets.ModelViewSet):
             {
                 "owner": user.first_name + " " + user.last_name,
                 "DOMAIN_URL": DOMAIN_URL,
+                "user_data": user_data,
             },
         )
 
