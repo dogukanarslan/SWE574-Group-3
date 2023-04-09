@@ -42,7 +42,7 @@ class UserRegisterSerializer(ModelSerializer):
         first_name = validated_data.get("first_name", "")
         last_name = validated_data.get("last_name", "")
         password = validated_data.get("password"),
-        description = validated_data.get("description",""),
+        description = validated_data.get("description","")
 
         user_obj = User(
             email=email,
