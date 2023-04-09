@@ -15,6 +15,11 @@
     <input id="last_name" class="form-control" type="text" name="last_name" value="{{ last_name }}"
       placeholder="{{user.last_name}}" required />
   </div>
+  <div class="mb-3">
+    <label for="description" class="form-label">Description</label>
+    <input id="description" class="form-control" type="text" name="description" value="{{ description }}"
+      placeholder="{{user_data.description}}" required />
+  </div>
 
   <div class="d-flex justify-content-end">
     <a href="{{DOMAIN_URL}}/user/change_password_form/" class="btn btn-outline-dark">Change Password</a>

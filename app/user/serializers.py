@@ -27,6 +27,7 @@ class UserRegisterSerializer(ModelSerializer):
             "email",
             "password",
             "password2",
+            "description",
         ]
         extra_kwargs = {"password": {"write_only": True}, "email": {"required": True}}
 
@@ -41,12 +42,14 @@ class UserRegisterSerializer(ModelSerializer):
         first_name = validated_data.get("first_name", "")
         last_name = validated_data.get("last_name", "")
         password = validated_data.get("password")
+        description = validated_data.get("description","")
 
         user_obj = User(
             email=email,
             username=username,
             first_name=first_name,
             last_name=last_name,
+            description=description,
         )
         user_obj.set_password(password)
         user_obj.save()
@@ -63,6 +66,7 @@ class UserListSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "email",
+            "description",
         ]
         read_only_fields = ("id",)
 

@@ -64,7 +64,6 @@ class PostModelTest(TestCase):
             description="Description",
             owner=user,
             platform="Platform",
-            link="Link",
             space=space,
         )
         post.liked_by.add(user_2)
