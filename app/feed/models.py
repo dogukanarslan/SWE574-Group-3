@@ -2,7 +2,11 @@ from django.db import models
 from user.models import User
 
 # Create your models here.
-
+SPACE_JOIN_REQUEST_STATUS =(
+    ("Pending", "Pending"),
+    ("Accepted", "Accepted"),
+    ("Declined", "Declined")
+)
 
 class Space(models.Model):
     title = models.CharField(
@@ -11,6 +15,7 @@ class Space(models.Model):
     description = models.CharField(
         max_length=300, blank=True, null=True, unique=False, default=""
     )
+    is_private = models.BooleanField(null=True, blank=True, default=False)
     created_time = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(
         User,
@@ -22,11 +27,33 @@ class Space(models.Model):
     moderator = models.ManyToManyField(
         User, blank=True, null=True, related_name="moderator_of_spaces"
     )
+    member = models.ManyToManyField(
+        User, blank=True, null=True, related_name="member_of_spaces"
+    )
     
     def __str__(self):
         return self.title
 
 
+class SpaceJoinRequest(models.Model):
+    owner = models.ForeignKey(
+        User,
+        related_name="space_request_user",
+        null=True,
+        unique=False,
+        on_delete=models.CASCADE,
+    )
+    space = models.ForeignKey(
+        Space,
+        related_name="space_request_space",
+        null=True,
+        unique=False,
+        on_delete=models.CASCADE,
+    )
+    status = models.CharField(
+        max_length=300, blank=False, null=False, unique=False, choices = SPACE_JOIN_REQUEST_STATUS , default="Pending"
+    )
+    
 class Label(models.Model):
     name = models.CharField(
         max_length=300, blank=False, null=False, unique=False, default=""

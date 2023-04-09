@@ -13,6 +13,18 @@ class SpaceCreateSerializer(serializers.ModelSerializer):
         model = Space
         fields = "__all__"
 
+class SpaceJoinRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpaceJoinRequest
+        fields = "__all__"
+
+class SpaceJoinRequestListSerializer(serializers.ModelSerializer):
+    owner = UserListSerializer()
+    space=SpaceCreateSerializer()
+    class Meta:
+        model = SpaceJoinRequest
+        fields = "__all__"
+
 
 class LabelSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,9 +35,6 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = "__all__"
-
-
-
 
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -52,7 +61,8 @@ class PostListSerializer(serializers.ModelSerializer):
 class SpaceListSerializer(serializers.ModelSerializer):
     owner = UserListSerializer()
     space_posts = PostListSerializer(many=True)
-
+    space_request_space = SpaceJoinRequestListSerializer(many=True)
+    moderator = UserListSerializer(many=True)
     class Meta:
         model = Space
         fields = "__all__"

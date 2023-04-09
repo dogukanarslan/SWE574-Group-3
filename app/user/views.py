@@ -116,7 +116,6 @@ class UserViewSet(viewsets.ModelViewSet):
             res.update(new_data)
             # return Response(res,200)
             login(request, user)
-            # return render (request=request, template_name="loginSuccess.html")
             spaces = Space.objects.all().order_by("-id")
             return redirect(
                 "/feed/space/",

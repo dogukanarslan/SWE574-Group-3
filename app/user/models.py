@@ -18,10 +18,6 @@ class User(User):
         validators=[MinValueValidator(1000000), MaxValueValidator(10000000000 - 1)],
     )
 
-
-
-
-
 class ResetPassword(models.Model):
     code = models.CharField(
         max_length=300, blank=False, null=False, unique=False, default=""

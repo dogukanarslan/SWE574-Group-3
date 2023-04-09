@@ -24,10 +24,15 @@ class SpaceViewSet(viewsets.ModelViewSet):
         request.data._mutable = True
         user = User.objects.filter(id=request.user.id).first()
         request.data["owner"] = user
+        private_check_box = request.data.get("private_check_box")
+        if private_check_box:
+            request.data["is_private"]="True"
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
+        space = Space.objects.get(id=serializer.data["id"])
+        
         spaces = Space.objects.all().order_by("-id")
         # return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         return render(
@@ -77,21 +82,155 @@ class SpaceViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["get"], name="Add Moderator")
-    def add_moderator(self, request, pk=None):
-        return Response("Added successfully", status=200)
+    def space_settings_form(self, request, pk=None):
+        space = self.get_object()
+        space_data = SpaceListSerializer(space).data
+        user=request.user
+        return render(
+                request,
+                "spaceSettings.html",
+                {
+                    "space": space_data,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
 
-    @action(detail=True, methods=["get"], name="Delete Post")
-    def delete_post(self, request, pk=None):
-        return Response("Deleted successfully from the space.", status=200)
+    @action(detail=True, methods=["post"], name="Add Moderator")
+    def search_moderator(self, request, pk=None):
+        space = self.get_object()
+        space_data = SpaceListSerializer(space).data
+        user=request.user
+        search_keyword = request.data["search_keyword"]
+        print(search_keyword)
+        user_data=UserListSerializer(User.objects.filter(
+                Q(first_name__icontains=search_keyword)
+                | Q(last_name__icontains=search_keyword)).distinct(),many=True).data
+        print(user_data)
+        return render(
+                request,
+                "spaceSettings.html",
+                {
+                    "space": space_data,
+                    "user_data":user_data,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+
+    @action(detail=True, methods=["get"], name="Add Moderator")
+    def add_moderator(self, request, pk=None):
+        space = self.get_object()
+        space_data = SpaceListSerializer(space).data
+        user=request.user
+        user_id = request.GET.get("value")
+        user_obj = User.objects.get(id=user_id)
+        space.moderator.add(user_obj)
+        space.save()
+        return render(
+                request,
+                "spaceSettings.html",
+                {
+                    "space": space_data,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+    @action(detail=True, methods=["get"], name="Add Moderator")
+    def remove_moderator(self, request, pk=None):
+        space = self.get_object()
+        user=request.user
+        user_id = request.GET.get("value")
+        user_obj = User.objects.get(id=user_id)
+        space.moderator.remove(user_obj)
+        space.save()
+        space_data = SpaceListSerializer(space).data
+
+        return render(
+                request,
+                "spaceSettings.html",
+                {
+                    "space": space_data,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+
 
     @action(detail=True, methods=["get"], name="Approve User")
-    def approve_user(self, request, pk=None):
-        return Response("Approved successfully.", status=200)
+    def send_join_request_to_space(self, request, pk=None):
+        user = request.user
+        spaces = Space.objects.all().order_by("-id")
+        user_obj = User.objects.get(id=user.id)
+        space = self.get_object()
+        space_join_request= SpaceJoinRequest.objects.create(owner=user_obj, space=space)
+        return render(
+                request,
+                "spaces.html",
+                {
+                    "spaces": spaces,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+    @action(detail=True, methods=["get"], name="Accept User")
+    def accept_space_join_request(self, request, pk=None):
+        space_join_request = SpaceJoinRequest.objects.get(id=self.kwargs['pk'])
+        space_join_request.status = "Accepted"
+        space_join_request.save()
+        space = Space.objects.get(id=space_join_request.space.id)
+        user = User.objects.get(id=space_join_request.owner.id)
+        space.member.add(user)
+        space.save()
+        space_data = SpaceListSerializer(space).data
+        return Response(space_data, status=200)
 
     @action(detail=True, methods=["get"], name="Reject User")
-    def reject_user(self, request, pk=None):
-        return Response("Rejected successfully.", status=200)
+    def reject_space_join_request(self, request, pk=None):
+        space_join_request = SpaceJoinRequest.objects.get(id=self.kwargs['pk'])
+        space_join_request.status = "Rejected"
+        space_join_request.save()
+        space = Space.objects.get(id=space_join_request.space.id)
+        space_data = SpaceListSerializer(space).data
+        return Response(space_data, status=200)
 
+    @action(detail=True, methods=["get"], name="Reject User")
+    def list_space_join_requests(self, request, pk=None):
+        space = self.get_object()
+        user=request.user
+        user_data = UserListSerializer(request.user).data
+        data = SpaceListSerializer(space).data
+        space_join_requests=SpaceJoinRequest.objects.filter(space=space.id,status="Pending")
+        space_join_request_data = SpaceJoinRequestListSerializer(space_join_requests,many=True).data
+        space_members_data = UserListSerializer(space.member,many=True).data
+        if request.user.id in space.moderator.all() or request.user.id == space.owner.id:
+            user = request.user
+            return render(
+                request,
+                "spaceJoinRequest.html",
+                {
+                    "space": data,
+                    "user_data":user_data,
+                    "space_join_request_data":space_join_request_data,
+                    "space_members_data":space_members_data,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+        else:
+            user = request.user
+            return render(
+                request,
+                "spaceMembers.html",
+                {
+                    "space": data,
+                    "user_data":user_data,
+                    "space_members_data":space_members_data,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+        
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
@@ -99,13 +238,16 @@ class SpaceViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         spaces = Space.objects.all().order_by("-id")
+        spaces_data = SpaceListSerializer(spaces,many=True).data
         if request.user.is_anonymous == False:
             user = request.user
+            user_data = UserListSerializer(user).data
             return render(
                 request,
                 "spaces.html",
                 {
-                    "spaces": spaces,
+                    "spaces": spaces_data,
+                    "user_data":user_data,
                     "owner": user.first_name + " " + user.last_name,
                     "DOMAIN_URL": DOMAIN_URL,
                 },
@@ -121,6 +263,7 @@ class SpaceViewSet(viewsets.ModelViewSet):
         labels = Label.objects.all()
         if request.user.is_anonymous == False:
             user = request.user
+            user_data = UserListSerializer(user).data
             user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
             user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data            
             return render(
@@ -128,6 +271,7 @@ class SpaceViewSet(viewsets.ModelViewSet):
                 "spacePosts.html",
                 {
                     "space": data,
+                    "user_data":user_data,
                     "user_liked_posts":user_liked_posts,
                     "user_bookmarked_posts":user_bookmarked_posts,
                     "labels": labels,
@@ -494,7 +638,7 @@ class PostViewSet(viewsets.ModelViewSet):
         comments_data = CommentListSerializer(comments,many=True).data
         if request.user.is_anonymous == False:
             user = request.user
-            if user.id ==post_obj.owner.id:
+            if user.id ==post_obj.owner.id or user.id==post_obj.space.owner.id or post_obj.space.moderator.filter(id=user.id):
                 return render(
                     request,
                     "ownPostDetail.html",
