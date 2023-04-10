@@ -242,12 +242,39 @@ class SpaceViewSet(viewsets.ModelViewSet):
         if request.user.is_anonymous == False:
             user = request.user
             user_data = UserListSerializer(user).data
+            owner_or_member_space_data = SpaceListSerializer(Space.objects.filter(Q(member__id__exact=user.id)| Q(owner=user.id)),many=True).data
+            spaces_data_array = []
+            owner_or_member_spaces_data_array = []
+            recommanded_spaces = []
+            
+            for space_data in spaces_data:
+                space_dict={}
+                space_dict["id"]=space_data["id"]
+                space_dict["owner"]=space_data["owner"]["id"]
+                space_dict["words_of_description"]=space_data["description"].split()
+                spaces_data_array.append(space_dict)
+
+            for owner_or_member in owner_or_member_space_data:
+                space_dict={}
+                space_dict["id"]=owner_or_member["id"]
+                space_dict["owner"]=space_data["owner"]["id"]
+                space_dict["words_of_description"]=owner_or_member["description"].split()
+                owner_or_member_spaces_data_array.append(space_dict)
+                            
+            for element_space in spaces_data_array:
+                for element_owner_or_member_space in owner_or_member_spaces_data_array:
+                    if element_space["id"] != element_owner_or_member_space["id"] and element_space["owner"] != element_owner_or_member_space["owner"] :
+                        print("after",element_space["owner"], element_owner_or_member_space["owner"])
+                        if common_data(element_owner_or_member_space["words_of_description"],element_space["words_of_description"]):
+                            if SpaceListSerializer(Space.objects.get(id=element_space["id"])).data not in recommanded_spaces:
+                                recommanded_spaces.append(SpaceListSerializer(Space.objects.get(id=element_space["id"])).data)
             return render(
                 request,
                 "spaces.html",
                 {
                     "spaces": spaces_data,
                     "user_data":user_data,
+                    "recommanded_spaces":recommanded_spaces,
                     "owner": user.first_name + " " + user.last_name,
                     "DOMAIN_URL": DOMAIN_URL,
                 },
@@ -853,3 +880,11 @@ class PostViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
+def common_data(list1, list2):
+    result = False
+    for x in list1:
+        for y in list2:
+            if x == y:
+                result = True
+                return result    
+    return result

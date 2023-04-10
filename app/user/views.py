@@ -148,16 +148,37 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"], name="See Profile")
     def possible_to_know(self, request, *args, **kwargs):
         user = request.user
+        user_obj_data = UserListSerializer(User.objects.get(id=user.id)).data
         users = User.objects.exclude(id=request.user.id)
         user_data = UserListSerializer(users,many=True).data
         friends=Friends.objects.get(owner=user.id)
         followings=UserListSerializer(friends.friend_list.all(),many=True).data
+        user_data_array = []
+        following_data_array = []
+        for person in user_data:
+            user_dict = {}
+            user_dict["id"] = person["id"]
+            user_dict["words_of_description"]=person["description"].split()
+            user_data_array.append(user_dict)
+        for following in followings:
+            user_dict = {}
+            user_dict["id"] = following["id"]
+            user_dict["words_of_description"]=following["description"].split()
+            following_data_array.append(user_dict)
+        recommanded_users= []
+        for element_following in following_data_array:
+            for element_user in user_data_array:
+                if element_user["id"] != element_following["id"]:
+                    if common_data(element_following["words_of_description"],element_user["words_of_description"]) or common_data(user_obj_data["description"].split(),element_user["words_of_description"]):
+                        if UserListSerializer(User.objects.get(id=element_user["id"])).data not in recommanded_users:
+                            recommanded_users.append(UserListSerializer(User.objects.get(id=element_user["id"])).data)
         return render(
             request,
             "possibleToKnow.html",
             {
                 "users":user_data,
                 "followings":followings,
+                "recommanded_users":recommanded_users,
                 "owner": user.first_name + " " + user.last_name,
                 "DOMAIN_URL": DOMAIN_URL,
             },
@@ -367,3 +388,13 @@ class UserViewSet(viewsets.ModelViewSet):
             return UserRegisterSerializer
         else:
             return UserListSerializer
+
+
+def common_data(list1, list2):
+    result = False
+    for x in list1:
+        for y in list2:
+            if x == y:
+                result = True
+                return result    
+    return result

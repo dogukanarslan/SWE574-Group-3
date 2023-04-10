@@ -1,7 +1,12 @@
 <div class="card mt-2">
     <div class="card-body">
+
         <h5 class="card-title">{{user.first_name}} {{user.last_name}}</h5>
+        <h6 class="card-title">{{user.description}}</h6>
         <div class="d-flex justify-content-end">
+            {% if user in recommanded_users %}
+            <span class="badge bg-secondary">Recommanded</span>
+            {% endif %}
             {% if user in followings %}
             <a href="{{DOMAIN_URL}}/user/{{user.id}}/unfollow/" class="btn btn-outline-dark">Unfollow</a>
             {% else %}

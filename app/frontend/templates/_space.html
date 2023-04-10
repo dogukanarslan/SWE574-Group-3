@@ -2,6 +2,9 @@
   <div class="card-body">
     <h5 class="card-title">{{space.title}}</h5>
     <p class="card-text">{{space.description}}</p>
+    {% if space in recommanded_spaces %}
+    <span class="badge bg-secondary">Recommanded</span>
+    {% endif %}
     {% if user_data not in space.member and space.is_private and user_data.id is not space.owner.id and user_data.id not in space.moderator %}
     <a href="{{DOMAIN_URL}}/feed/space/{{space.id}}/send_join_request_to_space/" class="card-link"
     > Join </a
