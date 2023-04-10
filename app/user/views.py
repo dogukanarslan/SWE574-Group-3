@@ -224,31 +224,40 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"], name="See Profile")
     def profile_form(self, request, *args, **kwargs):
         user = request.user
+        user_obj = User.objects.get(email=user.email)
+        user_data=UserListSerializer(user_obj).data
         return render(
             request,
             "profilePage.html",
             {
                 "owner": user.first_name + " " + user.last_name,
                 "DOMAIN_URL": DOMAIN_URL,
+                "user_data": user_data,
             },
         )
 
     @action(detail=False, methods=["post"], name="Update Profile")
     def profile_update_request(self, request, *args, **kwargs):
         user = request.user
+        user_obj = User.objects.get(email=user.email)
         data = request.data
+        user_data=UserListSerializer(user_obj).data
         if request.data["first_name"]:
             user.first_name = request.data["first_name"]
             user.save()
         if request.data["last_name"]:
             user.last_name = request.data["last_name"]
             user.save()
+        if request.data["description"]:
+            user_obj.description = request.data["description"]
+            user_obj.save()
         return render(
             request,
             "profilePage.html",
             {
                 "owner": user.first_name + " " + user.last_name,
                 "DOMAIN_URL": DOMAIN_URL,
+                "user_data": user_data,
             },
         )
 
