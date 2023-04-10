@@ -280,6 +280,9 @@ JAZZMIN_SETTINGS = {
     "language_chooser": True,
 }
 
+FIXTURE_DIRS = [
+    os.path.join(BASE_DIR, 'fixtures')
+]
 
 EMAIL_HOST = get_env_variable("EMAIL_HOST")
 EMAIL_HOST_USER = get_env_variable("EMAIL_HOST_USER")
