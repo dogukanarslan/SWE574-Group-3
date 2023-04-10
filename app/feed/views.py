@@ -1,10 +1,14 @@
 from django.shortcuts import render
 from rest_framework import status, viewsets
 from rest_framework.response import Response
+from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.decorators import action
+from rest_framework.decorators import api_view
+
+from feed.forms import AnnotationForm
 from .serializers import *
 from .models import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -12,6 +16,12 @@ from user.permissions import IsSpaceOwnerPermission, IsModeratorPermission
 from user.models import User
 from app.settings import DOMAIN_URL
 from django.db.models import Q
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import ListView, DetailView
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import textAnnotation, Post
+
 
 # Create your views here.
 
@@ -706,4 +716,59 @@ class PostViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
+
+
+class AnnotationList(viewsets.ModelViewSet):
+    serializer_class = AnnotationListSerializer
+    queryset = textAnnotation.objects.all()
+
+    @api_view(['POST'])
+    def create_annotation_view(request):
+        if request.method == 'POST':
+            # validate form data
+            form = AnnotationForm(request.POST)
+            if form.is_valid():
+                # create annotation object
+                annotation = form.save(commit=False)
+                annotation.created_by = request.user
+                annotation.save()
+
+                # serialize response data
+                serializer = create_annotation(annotation)  
+                return Response(serializer.data)
+            else:
+                # return error response if form is invalid
+                return Response(form.errors, status=400)
+        else:
+            # return error response if request method is not POST
+            return Response({'error': 'Only POST requests are allowed.'}, status=405)
+ 
+
+    def edit_annotation(request, pk):
+        annotation = get_object_or_404(textAnnotation, pk=pk)
+        if request.method == 'POST':
+            form = AnnotationForm(request.POST, instance=annotation)
+            if form.is_valid():
+                annotation = form.save(commit=False)
+                annotation.save()
+                messages.success(request, 'Annotation updated successfully!')
+                return redirect('annotation_detail', pk=annotation.pk)
+        else:
+            form = AnnotationForm(instance=annotation)
+        return render(request, 'annotation_form.html', {'form': form, 'annotation': annotation})   
+
+    def delete_annotation(request, pk):
+        annotation = get_object_or_404(textAnnotation, pk=pk)
+        if request.method == 'POST':
+            annotation.delete()
+            messages.success(request, 'Annotation deleted successfully!')
+            return redirect('post_detail', pk=annotation.source.pk)
+        return render(request, 'annotation_confirm_delete.html', {'annotation': annotation})    
+
+ 
+class AnnotationListCreateView(generics.ListCreateAPIView):
+    queryset = textAnnotation.objects.all()
+    serializer_class = AnnotationDetail
+
+
 

@@ -8,9 +8,11 @@ router = DefaultRouter()
 router.register("space", views.SpaceViewSet)
 router.register("label", views.LabelViewSet)
 router.register("post", views.PostViewSet)
+router.register(r'annotation', views.AnnotationList, basename='annotation')
 
 app_name = "meal"
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path("", include(router.urls))
 ]
+

@@ -1,5 +1,6 @@
 from django.db import models
 from user.models import User
+from django.urls import reverse
 
 # Create your models here.
 
@@ -88,5 +89,24 @@ class Comment(models.Model):
     user = models.ForeignKey(User, blank=False, null=True, on_delete=models.CASCADE, related_name="reviewer")
     comment = models.CharField( max_length=1000, blank=True, null=True)
     created_time = models.DateTimeField(auto_now_add=True)
+
+class textAnnotation(models.Model):
+    id=models.CharField(blank=False,null=False,unique=True, max_length=300,primary_key=True)
+    source = models.ForeignKey(Post, related_name='post_annotation', null=False, blank=False, on_delete=models.CASCADE)
+    type=models.TextField(blank=False,null=False)
+    body_description=models.TextField(blank=False,null=False,unique=True)
+    created_by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="created_by")
+    created_time = models.DateTimeField(auto_now_add=True)
+    selector_type=models.IntegerField(blank=False,null=False)
+    start=models.IntegerField(blank=False,null=False)
+    end=models.IntegerField(blank=False,null=False)
+
+    def get_absolute_url(self):
+        return reverse('annotation_detail', kwargs={'pk': self.pk})
+
+    def __str__(self):
+        return f"{self.type} annotation on {self.source.title}"
+
+    
 
 

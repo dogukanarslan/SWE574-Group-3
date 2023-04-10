@@ -58,3 +58,28 @@ class SpaceListSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class create_annotation(serializers.ModelSerializer):
+    class Meta:
+        model = textAnnotation
+        fields = "__all__"
+
+class AnnotationListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = textAnnotation
+        fields = "__all__"
+
+class edit_annotation(serializers.ModelSerializer):
+    class Meta:
+        model = textAnnotation
+        fields = "__all__"
+
+class delete_annotation(serializers.ModelSerializer):
+    class Meta:
+        model = textAnnotation
+        fields = "__all__"
+    
+class AnnotationDetail(serializers.ModelSerializer):
+    class Meta:
+        model = textAnnotation
+        fields = "__all__"  
+
