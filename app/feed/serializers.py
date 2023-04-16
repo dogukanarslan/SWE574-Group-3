@@ -58,28 +58,7 @@ class SpaceListSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class create_annotation(serializers.ModelSerializer):
+class TextAnnotationSerializer(serializers.ModelSerializer):
     class Meta:
         model = textAnnotation
-        fields = "__all__"
-
-class AnnotationListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = textAnnotation
-        fields = "__all__"
-
-class edit_annotation(serializers.ModelSerializer):
-    class Meta:
-        model = textAnnotation
-        fields = "__all__"
-
-class delete_annotation(serializers.ModelSerializer):
-    class Meta:
-        model = textAnnotation
-        fields = "__all__"
-    
-class AnnotationDetail(serializers.ModelSerializer):
-    class Meta:
-        model = textAnnotation
-        fields = "__all__"  
-
+        fields = ('id', 'source', 'type', 'body_description', 'created_by', 'created_time', 'selector_type', 'start', 'end')
