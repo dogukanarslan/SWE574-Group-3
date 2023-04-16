@@ -722,19 +722,15 @@ class PostViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView):
+class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
     serializer_class = TextAnnotationSerializer
     
     def get_queryset(self):
-        return textAnnotation.objects.all()
-    
-    def get_queryset(self):
-        queryset = textAnnotation.objects.all()
-
-        source = self.request.query_params.get('source', None)
-        if source is not None:
-            queryset = queryset.filter(source=source)
-
+        source = self.request.query_params.get('source')
+        if source:
+            queryset = textAnnotation.objects.filter(source=source)
+        else:
+            queryset = textAnnotation.objects.all()
         return queryset
+    
  
-

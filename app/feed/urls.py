@@ -11,6 +11,7 @@ router.register("label", views.LabelViewSet)
 router.register("post", views.PostViewSet)
 router.register("annotation/", CreateTextAnnotationView, basename="annotation")
 
+
 app_name = "meal"
 
 urlpatterns = [
