@@ -43,10 +43,14 @@ class PostListSerializer(serializers.ModelSerializer):
     liked_by = UserListSerializer(many=True)
     label = LabelSerializer(many=True)
     post_review = CommentSerializer(many=True)
+    created_time = serializers.SerializerMethodField('convert_date')
 
     class Meta:
         model = Post
         fields = "__all__"
+    
+    def convert_date(self, obj):
+        return obj.created_time
 
 
 class SpaceListSerializer(serializers.ModelSerializer):
