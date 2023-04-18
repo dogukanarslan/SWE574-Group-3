@@ -26,19 +26,24 @@
         <span class="badge bg-dark mb-2">{{ label.name }}</span>
         {% endfor %}
         <div class="d-flex mt-2">
-          {% if post in user_liked_posts %}
-          <a class="btn btn-sm btn-outline-dark" href='{{DOMAIN_URL}}/feed/post/{{post.id}}/undo_like_post/'>Undo
-            Like</a>
+          {% if is_post_owner %}
+            <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/edit_form/" class="btn btn-sm btn-outline-dark">Edit</a>
+            <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/delete/" class="btn btn-sm btn-outline-danger ms-2">Delete</a>
           {% else %}
-          <a class="btn btn-sm btn-outline-dark" href='{{DOMAIN_URL}}/feed/post/{{post.id}}/like_post/'>Like</a>
-          {% endif %}
+            {% if post in user_liked_posts %}
+            <a class="btn btn-sm btn-outline-dark" href='{{DOMAIN_URL}}/feed/post/{{post.id}}/undo_like_post/'>Undo
+              Like</a>
+            {% else %}
+            <a class="btn btn-sm btn-outline-dark" href='{{DOMAIN_URL}}/feed/post/{{post.id}}/like_post/'>Like</a>
+            {% endif %}
 
-          {% if post in user_bookmarked_posts %}
-          <a class="btn btn-sm btn-outline-dark ms-2"
-            href='{{DOMAIN_URL}}/feed/post/{{post.id}}/undo_bookmark_post/'>Undo Bookmark</a>
-          {% else %}
-          <a class="btn btn-sm btn-outline-dark ms-2"
-            href='{{DOMAIN_URL}}/feed/post/{{post.id}}/bookmark_post/'>Bookmark</a>
+            {% if post in user_bookmarked_posts %}
+            <a class="btn btn-sm btn-outline-dark ms-2"
+              href='{{DOMAIN_URL}}/feed/post/{{post.id}}/undo_bookmark_post/'>Undo Bookmark</a>
+            {% else %}
+            <a class="btn btn-sm btn-outline-dark ms-2"
+              href='{{DOMAIN_URL}}/feed/post/{{post.id}}/bookmark_post/'>Bookmark</a>
+            {% endif %}
           {% endif %}
         </div>
       </div>
