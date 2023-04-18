@@ -1,10 +1,16 @@
 from django.shortcuts import render
 from rest_framework import status, viewsets
 from rest_framework.response import Response
+from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.decorators import action
+from rest_framework.decorators import api_view
+from rest_framework import mixins
+from rest_framework.generics import UpdateAPIView, DestroyAPIView
+
+
 from .serializers import *
 from .models import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -12,6 +18,13 @@ from user.permissions import IsSpaceOwnerPermission, IsModeratorPermission
 from user.models import User
 from app.settings import DOMAIN_URL
 from django.db.models import Q
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import ListView, DetailView
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import textAnnotation, Post
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 # Create your views here.
 
@@ -709,3 +722,15 @@ class PostViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
+class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
+    serializer_class = TextAnnotationSerializer
+    
+    def get_queryset(self):
+        source = self.request.query_params.get('source')
+        if source:
+            queryset = textAnnotation.objects.filter(source=source)
+        else:
+            queryset = textAnnotation.objects.all()
+        return queryset
+    
+ 

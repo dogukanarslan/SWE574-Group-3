@@ -1,5 +1,6 @@
 from django.db import models
 from user.models import User
+from django.urls import reverse
 
 # Create your models here.
 
@@ -88,5 +89,18 @@ class Comment(models.Model):
     user = models.ForeignKey(User, blank=False, null=True, on_delete=models.CASCADE, related_name="reviewer")
     comment = models.CharField( max_length=1000, blank=True, null=True)
     created_time = models.DateTimeField(auto_now_add=True)
+
+
+class textAnnotation(models.Model):
+    source = models.ForeignKey(Post, related_name='post_annotation', null=False, blank=False, on_delete=models.CASCADE)
+    type = models.TextField(blank=False, null=False)
+    body_description = models.TextField(blank=False, null=False, unique=False)
+    created_by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="created_by")
+    created_time = models.DateTimeField(auto_now_add=True)
+    selector_type = models.IntegerField(blank=False, null=False)
+    start = models.IntegerField(blank=False, null=False)
+    end = models.IntegerField(blank=False, null=False)
+
+
 
 
