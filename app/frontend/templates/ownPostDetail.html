@@ -36,7 +36,6 @@
 
 <form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/post/{{post.id}}/add_comment/">
   {% csrf_token %}
-  {% load static %}
 
   <div class="mb-3">
     <label for="comment" class="form-label">Add Comment</label>
