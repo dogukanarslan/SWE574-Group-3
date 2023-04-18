@@ -507,29 +507,22 @@ class PostViewSet(viewsets.ModelViewSet):
         comments_data = CommentListSerializer(comments,many=True).data
         if request.user.is_anonymous == False:
             user = request.user
-            if user.id ==post_obj.owner.id:
-                return render(
-                    request,
-                    "ownPostDetail.html",
-                    {
-                        "post": post,
-                        "comments": comments_data,
-                        "owner": user.first_name + " " + user.last_name,
-                        "DOMAIN_URL": DOMAIN_URL,
-                    },
-                )
-            else:
-                return render(
-                    request,
-                    "postDetail.html",
-                    {
-                        "post": post,
-                        "comments": comments_data,
+            user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
+            user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
 
-                        "owner": user.first_name + " " + user.last_name,
-                        "DOMAIN_URL": DOMAIN_URL,
-                    },
-                )
+            return render(
+                request,
+                "postDetail.html",
+                {
+                    "is_post_owner": user.id ==post_obj.owner.id,
+                    "post": post,
+                    "comments": comments_data,
+                    "owner": user.first_name + " " + user.last_name,
+                    "user_liked_posts": user_liked_posts,
+                    "user_bookmarked_posts": user_bookmarked_posts,
+                    "DOMAIN_URL": DOMAIN_URL
+                },
+            )
         else:
             return render(
                 request, "mainPosts.html", {"space": data, "DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True}
@@ -547,28 +540,23 @@ class PostViewSet(viewsets.ModelViewSet):
         comment_data = CommentListSerializer(comments,many=True).data
         data = PostListSerializer(post).data
         user = request.user
-        if user.id ==post.owner.id:        
-            return render(
+        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
+        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
+
+        return render(
             request,
-            "ownPostDetail.html",
+            "postDetail.html",
             {
+                "is_post_owner": user.id ==post.owner.id,
                 "posts": data,
                 "comments": comment_data,
                 "owner": user.first_name + " " + user.last_name,
+                "user_liked_posts": user_liked_posts,
+                "user_bookmarked_posts": user_bookmarked_posts,
                 "DOMAIN_URL": DOMAIN_URL,
             },
         )
-        else:
-            return render(
-                    request,
-                    "postDetail.html",
-                    {
-                        "comments": comment_data,
-                        "post": data,
-                        "owner": user.first_name + " " + user.last_name,
-                        "DOMAIN_URL": DOMAIN_URL,
-                    },
-                )
+
 
     @action(detail=True, methods=["get"], name="Like Post")
     def delete(self, request, pk=None):
@@ -603,6 +591,9 @@ class PostViewSet(viewsets.ModelViewSet):
         post_labels = post_obj.label.all()
         if request.user.is_anonymous == False:
             user = request.user
+            user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
+            user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
+
             if user.id ==post_obj.owner.id:
                 return render(
                     request,
@@ -622,6 +613,8 @@ class PostViewSet(viewsets.ModelViewSet):
                     {
                         "post": post,
                         "owner": user.first_name + " " + user.last_name,
+                        "user_liked_posts": user_liked_posts,
+                        "user_bookmarked_posts": user_bookmarked_posts,
                         "DOMAIN_URL": DOMAIN_URL,
                     },
                 )
@@ -654,26 +647,21 @@ class PostViewSet(viewsets.ModelViewSet):
         data = PostListSerializer(post).data
 
         user = request.user
-        if user.id ==post.owner.id:
-            return render(
-                    request,
-                    "ownPostDetail.html",
-                    {
-                        "post": data,
-                        "owner": user.first_name + " " + user.last_name,
-                        "DOMAIN_URL": DOMAIN_URL,
-                    },
-                )
-        else:
-            return render(
-                    request,
-                    "postDetail.html",
-                    {
-                        "post": data,
-                        "owner": user.first_name + " " + user.last_name,
-                        "DOMAIN_URL": DOMAIN_URL,
-                    },
-                )
+        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
+        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
+
+        return render(
+                request,
+                "postDetail.html",
+                {
+                    "is_post_owner": user.id==post.owner.id,
+                    "post": data,
+                    "owner": user.first_name + " " + user.last_name,
+                    "user_liked_posts": user_liked_posts,
+                    "user_bookmarked_posts": user_bookmarked_posts,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
 
 
     def list(self, request, *args, **kwargs):
