@@ -534,28 +534,9 @@ class PostViewSet(viewsets.ModelViewSet):
         user = request.user
         comment = request.data.get("comment")
         user_obj = User.objects.get(id=user.id)
-        comment_obj = Comment.objects.create(user=user_obj,post=post,comment=comment)
-        comments = Comment.objects.filter(post=post.id)
-        print(comments)
-        comment_data = CommentListSerializer(comments,many=True).data
-        data = PostListSerializer(post).data
-        user = request.user
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
+        Comment.objects.create(user=user_obj,post=post,comment=comment)
 
-        return render(
-            request,
-            "postDetail.html",
-            {
-                "is_post_owner": user.id ==post.owner.id,
-                "posts": data,
-                "comments": comment_data,
-                "owner": user.first_name + " " + user.last_name,
-                "user_liked_posts": user_liked_posts,
-                "user_bookmarked_posts": user_bookmarked_posts,
-                "DOMAIN_URL": DOMAIN_URL,
-            },
-        )
+        return redirect('/feed/post/' + str(post.id) + '/')
 
 
     @action(detail=True, methods=["get"], name="Like Post")
