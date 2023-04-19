@@ -34,9 +34,14 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
 class CommentListSerializer(serializers.ModelSerializer):
     user = UserListSerializer()
+    created_time = serializers.SerializerMethodField('convert_date')
+
     class Meta:
         model = Comment
         fields = "__all__"
+    
+    def convert_date(self, obj):
+        return obj.created_time
 
 class PostListSerializer(serializers.ModelSerializer):
     owner = UserListSerializer()
