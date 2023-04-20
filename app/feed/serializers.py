@@ -71,3 +71,8 @@ class TextAnnotationSerializer(serializers.ModelSerializer):
     class Meta:
         model = textAnnotation
         fields = ('id', 'source', 'type', 'body_description', 'created_by', 'created_time', 'selector_type', 'start', 'end')
+
+class ImageAnnotationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImageAnnotation
+        fields = ('id', 'source', 'type', 'body_description', 'created_by', 'created_time', 'location')

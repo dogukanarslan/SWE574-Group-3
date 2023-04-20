@@ -701,5 +701,16 @@ class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,gene
         else:
             queryset = textAnnotation.objects.all()
         return queryset
+
+class CreateImagennotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
+    serializer_class = ImageAnnotationSerializer
+    
+    def get_queryset(self):
+        source = self.request.query_params.get('source')
+        if source:
+            queryset = ImageAnnotation.objects.filter(source=source)
+        else:
+            queryset = ImageAnnotation.objects.all()
+        return queryset
     
  
