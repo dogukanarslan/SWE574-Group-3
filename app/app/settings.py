@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 import datetime
 from rest_framework import permissions
+from pathlib import Path
 
 # from dotenv import load_dotenv
 # load_dotenv()
@@ -41,6 +42,13 @@ DEBUG = True
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "0.0.0.0", "*"]
 
 
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -59,7 +67,14 @@ INSTALLED_APPS = [
     "frontend",
     "feed",
     "media",
+
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -283,6 +298,12 @@ JAZZMIN_SETTINGS = {
 FIXTURE_DIRS = [
     os.path.join(BASE_DIR, 'fixtures')
 ]
+
+# django-allauth config
+ACCOUNT_EMAIL_REQUIRED = True
+LOGIN_REDIRECT_URL = 'main'
+
+
 
 EMAIL_HOST = get_env_variable("EMAIL_HOST")
 EMAIL_HOST_USER = get_env_variable("EMAIL_HOST_USER")
