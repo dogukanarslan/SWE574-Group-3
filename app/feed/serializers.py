@@ -74,6 +74,13 @@ class TextAnnotationSerializer(serializers.ModelSerializer):
     class Meta:
         model = textAnnotation
         fields = ('id', 'source', 'type', 'body_description', 'created_by', 'created_time', 'selector_type', 'start', 'end')
+    def convert_date(self, obj):
+        return obj.created_time
+
+class ImageAnnotationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImageAnnotation
+        fields = ('id', 'source', 'type', 'body_description', 'created_by', 'created_time', 'location')
     
     def convert_date(self, obj):
         return obj.created_time
