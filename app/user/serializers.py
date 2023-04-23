@@ -71,9 +71,10 @@ class UserListSerializer(serializers.ModelSerializer):
             "badge"
         ]
         read_only_fields = ("id",)        
+    
     def assign_badge(self,obj):
         try:
-            friend_list = Friends.objects.get(owner=obj["id"]).friend_list.all()
+            friend_list = Friends.objects.get(owner=obj).friend_list.all()
         except Friends.DoesNotExist:
             friend_list = []        
         follower_count = len(friend_list)
@@ -85,14 +86,27 @@ class UserListSerializer(serializers.ModelSerializer):
             badge = Badge.objects.get(level=1) # Bronz Badge
         else:
             badge = None
+            
         obj.badge = badge        
         obj.save()
         return obj.badge
 
+class UserLoginListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "description",
+        ]
+        read_only_fields = ("id",)        
+
 class UserLoginSerializer(ModelSerializer):
     token = CharField(allow_blank=True, read_only=True)
     email = CharField(write_only=True, required=True)
-    user = UserListSerializer(read_only=True)
+    user = UserLoginListSerializer(read_only=True)
 
     class Meta:
         model = User
@@ -118,7 +132,7 @@ class UserLoginSerializer(ModelSerializer):
         payload = JWT_PAYLOAD_HANDLER(user_obj)
         token = JWT_ENCODE_HANDLER(payload)
         data["token"] = token
-        data["user"] = UserListSerializer(user_obj).data
+        data["user"] = UserLoginListSerializer(user_obj).data
         return data
 
 class BadgeSerializer(serializers.ModelSerializer):

@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 # Create your models here.
 class Badge(models.Model):
     LEVEL_CHOICES = (
-        (1, "Platinum"),
+        (1, "Bronze"),
         (2, "Silver"),
         (3, "Gold"),
     )

@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
 
 {% for user in users %}
 <div class="card mt-2">
     <div class="card-body">
-        <h5 class="card-title">{{user.first_name}} {{user.last_name}}</h5>
+        <h5 class="card-title">{{user.first_name}} {{user.last_name}}
         {% if user.badge %}
-            <p>{{ user_data.badge.level_text }}</p>
-        {% endif %}
+        <img src="{% static 'badges/'|add:user.badge.name|add:'.png' %}" style="width:25px;height:25px;">
+        {% endif %}</h5>
         <div class="d-flex justify-content-end">
             <a href="{{DOMAIN_URL}}/user/{{user.id}}/unfollow/" class="btn btn-outline-dark">Unfollow</a>
             <a href="{{DOMAIN_URL}}/feed/space/{{user.id}}/person_spaces/" class="btn btn-dark ms-2">View Posts</a>
