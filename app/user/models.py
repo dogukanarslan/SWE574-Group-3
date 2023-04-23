@@ -3,7 +3,24 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 # Create your models here.
+class Badge(models.Model):
+    LEVEL_CHOICES = (
+        (1, "Platinum"),
+        (2, "Silver"),
+        (3, "Gold"),
+    )
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=200)
+    level = models.IntegerField(choices=LEVEL_CHOICES)
 
+    def __str__(self):
+        return self.name
+
+    def level_text(self):
+        return self.get_level_display()
+
+    def level_number(self):
+        return self.level
 
 class User(User):
     description = models.CharField(
@@ -17,10 +34,13 @@ class User(User):
         null=True,
         validators=[MinValueValidator(1000000), MaxValueValidator(10000000000 - 1)],
     )
-
-
-
-
+    badge = models.ForeignKey(
+    Badge,
+    blank=True,
+    null=True,
+    on_delete=models.CASCADE,
+    related_name="user_badges",
+    )
 
 class ResetPassword(models.Model):
     code = models.CharField(

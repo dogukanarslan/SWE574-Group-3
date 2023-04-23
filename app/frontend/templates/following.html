@@ -6,10 +6,15 @@
 <div class="card mt-2">
     <div class="card-body">
         <h5 class="card-title">{{user.first_name}} {{user.last_name}}</h5>
+        {% if user.badge %}
+            <p>{{ user_data.badge.level_text }}</p>
+        {% endif %}
         <div class="d-flex justify-content-end">
             <a href="{{DOMAIN_URL}}/user/{{user.id}}/unfollow/" class="btn btn-outline-dark">Unfollow</a>
             <a href="{{DOMAIN_URL}}/feed/space/{{user.id}}/person_spaces/" class="btn btn-dark ms-2">View Posts</a>
         </div>
+{% empty %}
+        <div>You are not following anyone.</div>
     </div>
 </div>
 {% endfor %}

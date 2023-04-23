@@ -9,7 +9,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework_jwt.settings import api_settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from user.models import User,Friends,FriendRequest
+from user.models import User, Friends, FriendRequest, Badge
 
 
 JWT_PAYLOAD_HANDLER = api_settings.JWT_PAYLOAD_HANDLER
@@ -59,6 +59,7 @@ class UserRegisterSerializer(ModelSerializer):
 
 
 class UserListSerializer(serializers.ModelSerializer):
+    badge = serializers.SerializerMethodField('assign_badge')
     class Meta:
         model = User
         fields = [
@@ -67,9 +68,26 @@ class UserListSerializer(serializers.ModelSerializer):
             "last_name",
             "email",
             "description",
+            "badge"
         ]
-        read_only_fields = ("id",)
-
+        read_only_fields = ("id",)        
+    def assign_badge(self,obj):
+        try:
+            friend_list = Friends.objects.get(owner=obj["id"]).friend_list.all()
+        except Friends.DoesNotExist:
+            friend_list = []        
+        follower_count = len(friend_list)
+        if follower_count >= 3:
+            badge = Badge.objects.get(level=3) # Gold Badge
+        elif follower_count >= 2:
+            badge = Badge.objects.get(level=2) # Silver Badge
+        elif follower_count >= 1:
+            badge = Badge.objects.get(level=1) # Bronz Badge
+        else:
+            badge = None
+        obj.badge = badge        
+        obj.save()
+        return obj.badge
 
 class UserLoginSerializer(ModelSerializer):
     token = CharField(allow_blank=True, read_only=True)
@@ -103,8 +121,19 @@ class UserLoginSerializer(ModelSerializer):
         data["user"] = UserListSerializer(user_obj).data
         return data
 
-
-
+class BadgeSerializer(serializers.ModelSerializer):
+    user_badges=UserListSerializer()
+    class Meta:
+        model = Badge
+        fields = [
+            "id",
+            "user_badges",
+            "name",
+            "description",
+            "level",
+        ]
+        read_only_fields = ("id",)
+        
 class FriendRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
