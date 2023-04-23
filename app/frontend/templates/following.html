@@ -13,10 +13,11 @@
             <a href="{{DOMAIN_URL}}/user/{{user.id}}/unfollow/" class="btn btn-outline-dark">Unfollow</a>
             <a href="{{DOMAIN_URL}}/feed/space/{{user.id}}/person_spaces/" class="btn btn-dark ms-2">View Posts</a>
         </div>
-{% empty %}
-        <div>You are not following anyone.</div>
     </div>
 </div>
+{% empty %}
+<div>You are not following anyone.</div>
 {% endfor %}
+    
 
 {% endblock %}

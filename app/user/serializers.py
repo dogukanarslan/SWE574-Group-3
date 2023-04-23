@@ -74,7 +74,7 @@ class UserListSerializer(serializers.ModelSerializer):
     
     def assign_badge(self,obj):
         try:
-            friend_list = Friends.objects.get(owner=obj).friend_list.all()
+            friend_list = Friends.objects.filter(friend_list=obj)
         except Friends.DoesNotExist:
             friend_list = []        
         follower_count = len(friend_list)
