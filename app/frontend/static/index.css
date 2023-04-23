@@ -23,3 +23,14 @@
   transition: 0.4s;
   background-color: var(--bs-gray-300);
 }
+
+.selection-text {
+  border: none;
+  background: transparent;
+  display: block;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0;
+  width: 100%;
+  resize: none;
+}

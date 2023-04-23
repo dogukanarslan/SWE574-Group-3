@@ -13,7 +13,13 @@
           <h5 class="card-title">{{ post.title}}</h5>
           <span class="badge bg-dark mb-2">{{ post.platform }}</span>
         </div>
-        <div class="card-text">{{ post.description }}</div>
+        <div class="card-text">
+          <textarea disabled class="selection-text" id="annotated-description"
+            rows="4">{{ post.description }}</textarea>
+          <button id="annotation-button" class="btn btn-outline-dark btn-sm d-none">
+            Annotate
+          </button>
+        </div>
         <div class="card-text">{{ post.owner.first_name }} {{ post.owner.last_name }}</div>
         <div class="card-text">{{ post.created_time }}</div>
         <div>
@@ -27,23 +33,23 @@
         {% endfor %}
         <div class="d-flex mt-2">
           {% if is_post_owner %}
-            <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/edit_form/" class="btn btn-sm btn-outline-dark">Edit</a>
-            <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/delete/" class="btn btn-sm btn-outline-danger ms-2">Delete</a>
+          <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/edit_form/" class="btn btn-sm btn-outline-dark">Edit</a>
+          <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/delete/" class="btn btn-sm btn-outline-danger ms-2">Delete</a>
           {% else %}
-            {% if post in user_liked_posts %}
-            <a class="btn btn-sm btn-outline-dark" href='{{DOMAIN_URL}}/feed/post/{{post.id}}/undo_like_post/'>Undo
-              Like</a>
-            {% else %}
-            <a class="btn btn-sm btn-outline-dark" href='{{DOMAIN_URL}}/feed/post/{{post.id}}/like_post/'>Like</a>
-            {% endif %}
+          {% if post in user_liked_posts %}
+          <a class="btn btn-sm btn-outline-dark" href='{{DOMAIN_URL}}/feed/post/{{post.id}}/undo_like_post/'>Undo
+            Like</a>
+          {% else %}
+          <a class="btn btn-sm btn-outline-dark" href='{{DOMAIN_URL}}/feed/post/{{post.id}}/like_post/'>Like</a>
+          {% endif %}
 
-            {% if post in user_bookmarked_posts %}
-            <a class="btn btn-sm btn-outline-dark ms-2"
-              href='{{DOMAIN_URL}}/feed/post/{{post.id}}/undo_bookmark_post/'>Undo Bookmark</a>
-            {% else %}
-            <a class="btn btn-sm btn-outline-dark ms-2"
-              href='{{DOMAIN_URL}}/feed/post/{{post.id}}/bookmark_post/'>Bookmark</a>
-            {% endif %}
+          {% if post in user_bookmarked_posts %}
+          <a class="btn btn-sm btn-outline-dark ms-2"
+            href='{{DOMAIN_URL}}/feed/post/{{post.id}}/undo_bookmark_post/'>Undo Bookmark</a>
+          {% else %}
+          <a class="btn btn-sm btn-outline-dark ms-2"
+            href='{{DOMAIN_URL}}/feed/post/{{post.id}}/bookmark_post/'>Bookmark</a>
+          {% endif %}
           {% endif %}
         </div>
       </div>
@@ -63,15 +69,171 @@
   <button class="btn btn-outline-dark">Submit</button>
 </form>
 
-{% for comment in comments %}
-<div class="card mt-2">
-  <div class="card-body">
-    <h5 class="card-title">{{ comment.user.first_name}} {{ comment.user.last_name }}</h5>
-    <div class="card-text">{{ comment.created_time }}</div>
-    <div class="card-text">{{ comment.comment}}</div>
+<nav class="mt-3">
+  <div class="nav nav-tabs" id="nav-tab" role="tablist">
+    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#comments"
+      aria-selected="true">Comments</button>
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#annotations"
+      aria-selected="false">Annotations</button>
+  </div>
+</nav>
+<div class="tab-content" id="nav-tabContent">
+  <div class="tab-pane fade show active" id="comments">
+    {% for comment in comments %}
+    <div class="card mt-2">
+      <div class="card-body">
+        <h5 class="card-title">{{ comment.user.first_name}} {{ comment.user.last_name }}</h5>
+        <div class="card-text">{{ comment.created_time }}</div>
+        <div class="card-text">{{ comment.comment}}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="tab-pane fade" id="annotations">
+    {% for annotation in annotations %}
+    <div id="{{annotation.id}}" class="card mt-2">
+      <div class="card-body">
+        <h5 class="card-title">{{ annotation.created_by.first_name }} {{ annotation.created_by.last_name }}</h5>
+        <div class="card-text">{{ annotation.created_time }}</div>
+        <div class="card-text">{{ annotation.body_description }}</div>
+        <button class="btn btn-sm btn-outline-dark mt-2"
+          onclick='showAnnotatedText("{{annotation.start}}", "{{annotation.end}}", "{{annotation.body_description}}")'>Show
+          Annotation</button>
+      </div>
+    </div>
+    {% endfor %}
   </div>
 </div>
-{% endfor %}
 
+<div class="modal fade" id="annotationModal">
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Annotate</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/annotation/">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="annotation" class="form-label">Annotation</label>
+            <input id="annotation" class="form-control" type="text" name="body_description" placeholder="Annotation"
+              required />
+
+            <input type="hidden" name="source" value="{{post.id}}" />
+            <input type="hidden" id="annotation-start" name="start" />
+            <input type="hidden" id="annotation-end" name="end" />
+            <input type="hidden" name="type" value="text" />
+            <input type="hidden" name="selector_type" value="{{0}}" />
+          </div>
+
+          <button class="btn btn-outline-dark">Submit</button>
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal fade" id="annotatedTextModal">
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Annotation</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <h6>Description</h6>
+        <p id="annotated-text"></p>
+        <h6>Message</h6>
+        <p id="annotation-body-description"></p>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const annotationModal = new bootstrap.Modal('#annotationModal')
+  const annotatedTextModal = new bootstrap.Modal('#annotatedTextModal')
+
+  const annotationButton = document.getElementById('annotation-button');
+  const annotatedDescription = document.getElementById('annotated-description');
+  const annotationStartInput = document.getElementById('annotation-start');
+  const annotationEndInput = document.getElementById('annotation-end');
+  const annotatedText = document.getElementById('annotated-text')
+  const annotationBodyDescription = document.getElementById('annotation-body-description')
+
+  let selectedAnnotationText = ''
+
+
+  const showAnnotationButton = () => {
+    annotationButton.classList.remove('d-none');
+    annotationButton.classList.add('d-block');
+  }
+
+  const hideAnnotationButton = () => {
+    annotationButton.classList.remove('d-block');
+    annotationButton.classList.add('d-none');
+  }
+
+  const showAnnotatedText = (start, end, annotation) => {
+    const originalDescription = '{{post.description}}'
+    annotatedTextModal.show()
+    annotatedText.innerHTML = ''
+    annotationBodyDescription.innerHTML = annotation
+    let modifiedDescription = ''
+
+    for (let i = 0; i < originalDescription.length; i++) {
+      if (i >= start && i < end) {
+        modifiedDescription += originalDescription[i]
+      } else if (i == end) {
+        modifiedDescription += originalDescription[i]
+        const node = document.createElement('mark')
+        const textNode = document.createTextNode(modifiedDescription)
+        node.appendChild(textNode)
+        annotatedText.appendChild(node)
+      } else {
+        const textNode = document.createTextNode(originalDescription[i])
+        annotatedText.appendChild(textNode)
+      }
+    }
+
+  }
+
+  annotatedDescription.addEventListener('select', showAnnotationButton);
+
+  annotationButton.addEventListener('click', () => {
+    // Find highlighted text
+    selectedAnnotationText = window.getSelection().toString();
+
+    // Find starting index of highlighted text in complete description
+    const startIndex = '{{post.description}}'.search(selectedAnnotationText)
+    const endIndex = startIndex + selectedAnnotationText.length - 1
+
+    annotationStartInput.value = startIndex
+    annotationEndInput.value = endIndex
+
+    annotationModal.show();
+  })
+
+
+  document.addEventListener("selectionchange", event => {
+    if (window.getSelection) {
+      if (window.getSelection().toString() === '') {
+        hideAnnotationButton();
+      }
+    }
+  })
+
+</script>
 
 {% endblock %}

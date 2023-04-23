@@ -68,6 +68,12 @@ class SpaceListSerializer(serializers.ModelSerializer):
 
 
 class TextAnnotationSerializer(serializers.ModelSerializer):
+    created_by = UserListSerializer()
+    created_time = serializers.SerializerMethodField('convert_date')
+
     class Meta:
         model = textAnnotation
         fields = ('id', 'source', 'type', 'body_description', 'created_by', 'created_time', 'selector_type', 'start', 'end')
+    
+    def convert_date(self, obj):
+        return obj.created_time
