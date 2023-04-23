@@ -177,6 +177,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
+
 JAZZMIN_SETTINGS = {
     # title of the window
     "site_title": "MeetAll Admin Panel",

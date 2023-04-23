@@ -1,5 +1,4 @@
-from django.shortcuts import render
-from django.shortcuts import redirect
+from django.shortcuts import render, redirect
 from django.template.response import TemplateResponse
 import re
 from rest_framework import status, viewsets
@@ -9,18 +8,18 @@ from .models import *
 from .serializers import *
 from django.contrib.auth import authenticate, login, logout
 from .sendEmail import sendEmail
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 EMAIL_FORMAT_REGEX = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
 import uuid
 from feed.models import Space
 from app.settings import DOMAIN_URL
 
-
 def index(request):
     print(request.user)
     spaces = Space.objects.all()
     return render(request, "main.html", {"spaces": spaces, "DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True})
-
 
 class UserViewSet(viewsets.ModelViewSet):
     User = get_user_model()
@@ -134,42 +133,56 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], name="See Profile")
     def following(self, request, *args, **kwargs):
-        user = request.user
-        friends=Friends.objects.get(owner=user.id)
-        users=UserListSerializer(friends.friend_list.all(),many=True).data
+        user = User.objects.get(email=request.user.email)
+        try:
+            friends = Friends.objects.get(owner=user.id)
+        except Friends.DoesNotExist:
+            friends = None
+        if friends:
+            friend_list = friends.friend_list.all()
+            users=UserListSerializer(friend_list,many=True).data
+        else:
+            users = []
         return render(
             request,
             "following.html",
             {
-                "users":users,
+                "users": users,
                 "owner": user.first_name + " " + user.last_name,
                 "DOMAIN_URL": DOMAIN_URL,
             },
         )
+    
     @action(detail=False, methods=["get"], name="See Profile")
     def possible_to_know(self, request, *args, **kwargs):
         user = request.user
         users = User.objects.exclude(id=request.user.id)
         user_data = UserListSerializer(users,many=True).data
-        friends=Friends.objects.get(owner=user.id)
-        followings=UserListSerializer(friends.friend_list.all(),many=True).data
+        try:
+            friends = Friends.objects.get(owner=user.id)
+            followings = UserListSerializer(friends.friend_list.all(), many=True).data
+        except Friends.DoesNotExist:
+            followings = []
         return render(
             request,
             "possibleToKnow.html",
             {
-                "users":user_data,
-                "followings":followings,
+                "users": user_data,
+                "followings": followings,
                 "owner": user.first_name + " " + user.last_name,
                 "DOMAIN_URL": DOMAIN_URL,
             },
         )
+
     @action(detail=False, methods=["get"], name="See Profile")
     def followers(self, request, *args, **kwargs):
         user = request.user
         followers = []
-        friends = Friends.objects.filter(friend_list__id__contains=user.id)
-        following_friends=Friends.objects.get(owner=user.id)
-        followings=UserListSerializer(following_friends.friend_list.all(),many=True).data
+        friends = Friends.objects.filter(friend_list=user)
+        following_friends = Friends.objects.filter(owner=user).first()
+        followings = []
+        if following_friends:
+            followings = UserListSerializer(following_friends.friend_list.all(), many=True).data
         for friend in friends:
             followers.append(UserListSerializer(friend.owner).data)
         return render(
@@ -182,9 +195,12 @@ class UserViewSet(viewsets.ModelViewSet):
                 "DOMAIN_URL": DOMAIN_URL,
             },
         )
+
     @action(detail=True, methods=["get"], name="See Profile")
     def follow(self, request, *args, **kwargs):
         user = request.user
+        user_obj = User.objects.get(email=user.email)
+        user_data=UserListSerializer(user_obj).data
         friends = Friends.objects.get(owner=user)
         follow_people = self.get_object()
         friends.friend_list.add(follow_people.id)
@@ -240,7 +256,6 @@ class UserViewSet(viewsets.ModelViewSet):
     def profile_update_request(self, request, *args, **kwargs):
         user = request.user
         user_obj = User.objects.get(email=user.email)
-        data = request.data
         user_data=UserListSerializer(user_obj).data
         if request.data["first_name"]:
             user.first_name = request.data["first_name"]
