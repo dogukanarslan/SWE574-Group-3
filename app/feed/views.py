@@ -504,7 +504,9 @@ class PostViewSet(viewsets.ModelViewSet):
         print(post_obj)
         post = PostListSerializer(post_obj).data
         comments = Comment.objects.filter(post=post_obj.id)
+        annotations = textAnnotation.objects.filter(source=post_obj.id)
         comments_data = CommentListSerializer(comments,many=True).data
+        annotations_data = TextAnnotationSerializer(annotations, many=True).data
         if request.user.is_anonymous == False:
             user = request.user
             user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
@@ -517,6 +519,7 @@ class PostViewSet(viewsets.ModelViewSet):
                     "is_post_owner": user.id ==post_obj.owner.id,
                     "post": post,
                     "comments": comments_data,
+                    "annotations": annotations_data,
                     "owner": user.first_name + " " + user.last_name,
                     "user_liked_posts": user_liked_posts,
                     "user_bookmarked_posts": user_bookmarked_posts,
@@ -702,4 +705,18 @@ class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,gene
             queryset = textAnnotation.objects.all()
         return queryset
     
- 
+
+    def create(self, request, *args, **kwargs, ):
+        user = request.user
+        source = request.data.get("source")
+        post = Post.objects.get(id=source)
+        start = request.data.get("start")
+        body_description = request.data.get("body_description")
+        end = request.data.get("end")
+        type = request.data.get("type")
+        selector_type = request.data.get("selector_type")
+        user_obj = User.objects.get(id=user.id)
+
+        textAnnotation.objects.create(source=post,start=start, end=end, type=type, selector_type=selector_type, created_by=user_obj, body_description=body_description)
+        
+        return redirect("/feed/post/" + str(source) + '/')
