@@ -54,7 +54,7 @@ class Post(models.Model):
         max_length=300, blank=False, null=False, unique=False, default=""
     )
     label = models.ManyToManyField(Label, blank=True, null=True)
-    image = models.FileField(upload_to="posts", default="../static/default_post_image.png", blank=True, null=True, unique=False)
+    image = models.FileField(upload_to="posts", default="../static/default_post_image.png", blank=True, unique=False)
     is_private = models.BooleanField(null=True, blank=True, default=False)
     created_time = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(

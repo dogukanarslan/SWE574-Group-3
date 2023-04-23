@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
 
 {% for post in posts %}
@@ -13,7 +13,9 @@
       <div class="card-body">
         <h5 class="card-title">{{ post.title}}</h5>
         <div class="card-text">{{ post.description }}</div>
-        <div class="card-text">{{ post.owner.first_name }} {{ post.owner.last_name }}</div>
+        <div class="card-text">{{ post.owner.first_name }} {{ post.owner.last_name }}{% if post.owner.badge %}
+          <img src="{% static 'badges/'|add:post.owner.badge.name|add:'.png' %}" style="width:25px;height:25px;">
+          {% endif %}</div>
         <div class="card-text">{{ post.created_time }}</div>
         <div>
           {% for label in post.label %}

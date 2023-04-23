@@ -1,6 +1,10 @@
+{% load static %}
+
 <div class="card mt-2">
     <div class="card-body">
-        <h5 class="card-title">{{user.first_name}} {{user.last_name}}</h5>
+        <h5 class="card-title">{{user.first_name}} {{user.last_name}} {% if user.badge %}
+            <img src="{% static 'badges/'|add:user.badge.name|add:'.png' %}" style="width:25px;height:25px;">
+            {% endif %}</h5>
         <div class="d-flex justify-content-end">
             {% if user in followings %}
             <a href="{{DOMAIN_URL}}/user/{{user.id}}/unfollow/" class="btn btn-outline-dark">Unfollow</a>
