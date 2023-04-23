@@ -1,0 +1,10 @@
+<div class="card mt-2">
+    <div class="card-body">
+        <h5 class="card-title">{{request.space.title}}</h5>
+        <p class="card-text">{{request.space.description}}</p>
+        <div class="d-flex justify-content-end">
+            <a href="{{DOMAIN_URL}}/feed/space/{{request.id}}/accept_space_moderator_request/" class="btn btn-outline-dark">Accept</a>
+            <a href="{{DOMAIN_URL}}/feed/space/{{request.id}}/reject_space_moderator_request/" class="btn btn-dark ms-2">Reject</a>
+        </div>
+    </div>
+</div>

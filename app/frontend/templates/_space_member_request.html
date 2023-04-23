@@ -1,0 +1,11 @@
+<div class="card mt-2">
+    <div class="card-body">
+        <h5 class="card-title">{{request.owner.first_name}} {{request.owner.last_name}}</h5>
+        <h6 class="card-title">{{request.owner.description}}</h6>
+        <div class="d-flex justify-content-end">
+            <a href="{{DOMAIN_URL}}/feed/space/{{request.id}}/accept_space_join_request/" class="btn btn-outline-dark">Accept</a>
+            <a href="{{DOMAIN_URL}}/feed/space/{{request.id}}/reject_space_join_request/" class="btn btn-outline-dark">Reject</a>
+            <a href="{{DOMAIN_URL}}/feed/space/{{user.id}}/person_spaces/" class="btn btn-dark ms-2">View Posts</a>
+        </div>
+    </div>
+</div>

@@ -5,10 +5,25 @@
   {% csrf_token %}
   {% load static %}
 
-  <div class="text-center">
+  <button class="btn btn-outline-dark-2" type="button" onclick="window.location.href='{{DOMAIN_URL}}/feed/space/{{space.id}}/list_space_join_requests/'" >View Users</button>
+  <button class="btn btn-dark ms-3" type="button" onclick="window.location.href='{{DOMAIN_URL}}/feed/space/{{space.id}}/'" >Space</button>
+
+  {% if user_data.id is space.owner.id %}
+  <button class="btn btn-outline-dark-2" type="button" onclick="window.location.href='{{DOMAIN_URL}}/feed/space/{{space.id}}/space_settings_form/'" >Settings</button>
+  {% endif  %}
+
+
+  <div class="text-align-left">
+    <h1> </h1>
+  </div>
+
+  <div class="text-align-left">
     <h6>{{space.title}}</h6>
     <p>{{space.description}}</p>
   </div>
+
+  {% if user_data in space.member or user_data.id is space.owner.id or user_data in space.moderator %}
+  <h3>Create a Post</h3>
 
   <div class="mb-3">
     <label for="title" class="form-label">Title</label>
@@ -40,6 +55,7 @@
     Label</button>
   <button class="btn btn-dark ms-2">Submit</button>
 
+  {% endif %}
 
   <!-- Modal -->
   <div class="modal fade" id="myModal" role="dialog">

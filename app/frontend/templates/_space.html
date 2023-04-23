@@ -2,8 +2,23 @@
   <div class="card-body">
     <h5 class="card-title">{{space.title}}</h5>
     <p class="card-text">{{space.description}}</p>
+    {% if user_data not in space.member and user_data.id is not space.owner.id and user_data.id not in space.moderator %}
+    <a href="{{DOMAIN_URL}}/feed/space/{{space.id}}/send_member_request_to_space/" class="card-link"
+    > Join </a
+   >
+   {% elif user_data in space.member %}
+    <a href="{{DOMAIN_URL}}/feed/space/{{space.id}}/left_space/" class="card-link"
+    >Left</a
+  >
+    {% endif %}
+    {% if space.is_private == False or user_data in space.member or user_data.id is space.owner.id or user_data.id in space.moderator %}
     <a href="{{DOMAIN_URL}}/feed/space/{{space.id}}/" class="card-link"
-      >View Posts</a
+    >View Posts</a
+  >
+    <a href="{{DOMAIN_URL}}/feed/space/{{space.id}}/list_space_join_requests/" class="card-link"
+      >View Users</a
     >
+    {% endif %}
+
   </div>
 </div>

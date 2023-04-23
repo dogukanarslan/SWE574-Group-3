@@ -1,0 +1,9 @@
+<div class="card mt-2">
+    <div class="card-body">
+        <h5 class="card-title">{{user_request_data.owner.first_name}} {{user_request_data.owner.last_name}}</h5>
+        <h5 class="card-title">{{user_request_data.owner.description}} </h5>
+        <div class="d-flex justify-content-end">
+            <a href="{{DOMAIN_URL}}/feed/space/{{space.id}}/delete_moderator_request/?value={{ user_request_data.owner.id }}" class="btn btn-outline-dark">Cancel Request</a>
+        </div>
+    </div>
+</div>
