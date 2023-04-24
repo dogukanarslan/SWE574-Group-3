@@ -286,7 +286,8 @@ class SpaceViewSet(viewsets.ModelViewSet):
         space_join_requests=SpaceMemberRequest.objects.filter(space=space.id,status="Pending")
         space_join_request_data = SpaceMemberRequestListSerializer(space_join_requests,many=True).data
         space_members_data = UserListSerializer(space.member,many=True).data
-        if request.user.id in space.moderator.all() or request.user.id == space.owner.id:
+        if user in space.moderator.all() or user.id == space.owner.id:
+            print("testtt")
             return render(
                 request,
                 "spaceMemberRequest.html",
@@ -300,7 +301,6 @@ class SpaceViewSet(viewsets.ModelViewSet):
                 },
             )
         else:
-            user = request.user
             return render(
                 request,
                 "spaceMembers.html",
@@ -365,6 +365,7 @@ class SpaceViewSet(viewsets.ModelViewSet):
         user = User.objects.get(id=space_join_request.owner.id)
         user_data=UserListSerializer(user).data
         space.moderator.add(user)
+        space.member.add(user)
         space.save()
         moderator_requests = SpaceModeratorRequest.objects.filter(owner=user,status="Pending")
         moderator_requests_data = SpaceModeratorRequestListSerializer(moderator_requests,many=True).data
@@ -398,6 +399,52 @@ class SpaceViewSet(viewsets.ModelViewSet):
                     "DOMAIN_URL": DOMAIN_URL,
                 },
             )  
+    @action(detail=True, methods=["get"], name="Add Moderator")
+    def remove_moderator(self, request, pk=None):
+        space = self.get_object()
+        user=request.user
+        user_id = request.GET.get("value")
+        user_obj = User.objects.get(id=user_id)
+        space.moderator.remove(user_obj)
+        space.save()
+        space_data = SpaceListSerializer(space).data
+
+        return render(
+                request,
+                "spaceSettings.html",
+                {
+                    "space": space_data,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+
+    @action(detail=True, methods=["get"], name="Add Moderator")
+    def delete_post_from_space(self, request, pk=None):
+        space = self.get_object()
+        post_id = request.GET.get("value")
+        post_obj = Post.objects.get(id=post_id)
+        post_obj.space=None
+        post_obj.save()
+        user = User.objects.get(id=request.user.id)
+        user_data = UserListSerializer(user).data
+        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
+        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data 
+        labels = Label.objects.all()
+        space_data = SpaceListSerializer(space).data
+        return render(
+            request,
+            "spacePosts.html",
+            {
+                "space": space_data,
+                "user_liked_posts":user_liked_posts,
+                "user_data":user_data,
+                "user_bookmarked_posts":user_bookmarked_posts,
+                "labels": labels,
+                "owner": user.first_name + " " + user.last_name,
+                "DOMAIN_URL": DOMAIN_URL,
+            },
+        )
     def retrieve(self, request, *args, **kwargs):
         space = self.get_object()
         data = SpaceListSerializer(space).data

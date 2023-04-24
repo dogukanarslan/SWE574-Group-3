@@ -1,7 +1,13 @@
 <div class="card mt-2">
   <div class="card-body">
+    
+    {% if space.is_private %}
+    <span class="badge bg-secondary">Private Space</span>
+    {% endif %}
+
     <h5 class="card-title">{{space.title}}</h5>
     <p class="card-text">{{space.description}}</p>
+
     {% if user_data not in space.member and user_data.id is not space.owner.id and user_data.id not in space.moderator %}
     <a href="{{DOMAIN_URL}}/feed/space/{{space.id}}/send_member_request_to_space/" class="card-link"
     > Join </a
