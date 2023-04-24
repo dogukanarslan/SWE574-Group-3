@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/space/{{space.id}}/search_moderator/">
+  {% csrf_token %}
+  {% load static %}
+  
+  <button class="btn btn-outline-dark-2" type="button" onclick="window.location.href='{{DOMAIN_URL}}/feed/space/{{space.id}}/list_space_join_requests/'" >View Users</button>
+
+  <button class="btn btn-outline-dark-2" type="button" onclick="window.location.href='{{DOMAIN_URL}}/feed/space/{{space.id}}/'" >Space</button>
+
+  <button class="btn btn-dark ms-3" type="button" onclick="window.location.href='{{DOMAIN_URL}}/feed/space/{{space.id}}/space_settings_form/'" >Settings</button>
+
+  
+  <div class="text-align-left">
+    <h1> </h1>
+  </div>
+
+  <div class="text-align-left">
+    <h6>{{space.title}}</h6>
+    <p>{{space.description}}</p>
+  </div>
+
+  <div class="text-align-left">
+    <h5>Add Moderator</h5>
+  </div>
+
+  <div class="mb-3">
+    <label for="search_keyword" class="form-label">Search</label>
+    <input id="search_keyword" class="form-control" type="text" name="search_keyword" value="{{ search_keyword }}"
+      placeholder="Search a keyword" required />
+  </div>
+
+  <button class="btn btn-dark" onclick="window.location.href='{{DOMAIN_URL}}/feed/space/{{space.id}}/search_moderator/'" >Search</button>
+  
+  <div class="text-align-left">
+    <h5>Pending Moderators</h5>
+  </div>
+
+  {% for user_request_data in pending_moderator_requests %}
+  {% include '_moderator_request.html' %}
+  {% endfor %}
+
+  <div class="text-align-left">
+    <h5>Current Moderators</h5>
+  </div>
+
+  {% for user in space.moderator %}
+  {% include '_moderator.html' %}
+  {% endfor %}
+
+  <div class="text-align-left">
+    <h5>Search Results</h5>
+  </div>
+  {% for user in user_data %}
+  {% include '_moderator.html' %}
+  {% endfor %}
+
+</form>
+
+
+{% endblock %}

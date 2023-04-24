@@ -1,0 +1,14 @@
+<div class="card mt-2">
+    <div class="card-body">
+        <h5 class="card-title">{{user.first_name}} {{user.last_name}}</h5>
+        <h5 class="card-title">{{user.description}} </h5>
+        <div class="d-flex justify-content-end">
+            {% if user in space.moderator %}
+            <a href="{{DOMAIN_URL}}/feed/space/{{space.id}}/remove_moderator/?value={{ user.id }}" class="btn btn-outline-dark">Remove</a>
+            {% else %}
+            <a href="{{DOMAIN_URL}}/feed/space/{{space.id}}/send_moderator_request/?value={{ user.id }}" class="btn btn-dark ms-2">Send Moderator Request</a>
+            {% endif %}
+
+        </div>
+    </div>
+</div>

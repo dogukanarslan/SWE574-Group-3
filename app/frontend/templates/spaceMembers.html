@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/post/">
+  {% csrf_token %}
+  {% load static %}
+  
+  <button class="btn btn-dark ms-3" type="button" onclick="window.location.href='{{DOMAIN_URL}}/feed/space/{{space.id}}/list_space_join_requests/'" >View Users</button>
+
+  <button class="btn btn-outline-dark-2" type="button" onclick="window.location.href='{{DOMAIN_URL}}/feed/space/{{space.id}}/'" >Space</button>
+
+  {% if user_data.id is space.owner.id %}
+  <button class="btn btn-outline-dark-2" type="button" onclick="window.location.href='{{DOMAIN_URL}}/feed/space/{{space.id}}/space_settings_form/'" >Settings</button>
+  {% endif  %}
+
+  
+  <div class="text-align-left">
+    <h1> </h1>
+  </div>
+
+  <div class="text-align-left">
+    <h6>{{space.title}}</h6>
+    <p>{{space.description}}</p>
+  </div>
+
+  <div class="text-align-left">
+    <h5>Space Members</h5>
+  </div>
+
+</form>
+
+{% for user in space_members_data %}
+{% include '_user.html' %}
+{% endfor %}
+
+{% endblock %}

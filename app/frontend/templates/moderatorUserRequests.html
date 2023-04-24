@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% for request in moderator_requests_data %}
+{% include '_moderator_user_request.html' %}
+{% endfor %}
+
+{% endblock %}

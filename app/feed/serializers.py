@@ -19,18 +19,46 @@ class LabelSerializer(serializers.ModelSerializer):
         model = Label
         fields = "__all__"
 
+
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = "__all__"
 
 
+class SpaceMemberRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpaceMemberRequest
+        fields = "__all__"
+
+
+class SpaceMemberRequestListSerializer(serializers.ModelSerializer):
+    owner = UserListSerializer()
+    space=SpaceCreateSerializer()
+    class Meta:
+        model = SpaceMemberRequest
+        fields = "__all__"
+
+
+class SpaceModeratorRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpaceModeratorRequest
+        fields = "__all__"
+
+
+class SpaceModeratorRequestListSerializer(serializers.ModelSerializer):
+    owner = UserListSerializer()
+    space = SpaceCreateSerializer()
+    class Meta:
+        model = SpaceModeratorRequest
+        fields = "__all__"
 
 
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = "__all__"
+
 
 class CommentListSerializer(serializers.ModelSerializer):
     user = UserListSerializer()
@@ -42,6 +70,7 @@ class CommentListSerializer(serializers.ModelSerializer):
     
     def convert_date(self, obj):
         return obj.created_time
+
 
 class PostListSerializer(serializers.ModelSerializer):
     owner = UserListSerializer()
@@ -61,7 +90,9 @@ class PostListSerializer(serializers.ModelSerializer):
 class SpaceListSerializer(serializers.ModelSerializer):
     owner = UserListSerializer()
     space_posts = PostListSerializer(many=True)
-
+    space_member_request_space = SpaceMemberRequestListSerializer(many=True)
+    member=UserListSerializer(many=True)
+    moderator=UserListSerializer(many=True)
     class Meta:
         model = Space
         fields = "__all__"
@@ -76,6 +107,7 @@ class TextAnnotationSerializer(serializers.ModelSerializer):
         fields = ('id', 'source', 'type', 'body_description', 'created_by', 'created_time', 'selector_type', 'start', 'end')
     def convert_date(self, obj):
         return obj.created_time
+
 
 class ImageAnnotationSerializer(serializers.ModelSerializer):
     class Meta:

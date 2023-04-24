@@ -4,6 +4,11 @@ from django.urls import reverse
 
 # Create your models here.
 
+SPACE_REQUEST_STATUS =(
+    ("Pending", "Pending"),
+    ("Accepted", "Accepted"),
+    ("Declined", "Declined")
+)
 
 class Space(models.Model):
     title = models.CharField(
@@ -13,6 +18,7 @@ class Space(models.Model):
         max_length=300, blank=True, null=True, unique=False, default=""
     )
     created_time = models.DateTimeField(auto_now_add=True)
+    is_private = models.BooleanField(null=True, blank=True, default=False)
     owner = models.ForeignKey(
         User,
         related_name="own_spaces",
@@ -23,10 +29,52 @@ class Space(models.Model):
     moderator = models.ManyToManyField(
         User, blank=True, null=True, related_name="moderator_of_spaces"
     )
+    member = models.ManyToManyField(
+        User, blank=True, null=True, related_name="member_of_spaces"
+    )
     
     def __str__(self):
         return self.title
 
+
+class SpaceMemberRequest(models.Model):
+    owner = models.ForeignKey(
+        User,
+        related_name="space_member_request_user",
+        null=True,
+        unique=False,
+        on_delete=models.CASCADE,
+    )
+    space = models.ForeignKey(
+        Space,
+        related_name="space_member_request_space",
+        null=True,
+        unique=False,
+        on_delete=models.CASCADE,
+    )
+    status = models.CharField(
+        max_length=300, blank=False, null=False, unique=False, choices = SPACE_REQUEST_STATUS , default="Pending"
+    )
+
+
+class SpaceModeratorRequest(models.Model):
+    owner = models.ForeignKey(
+        User,
+        related_name="space_moderator_request_user",
+        null=True,
+        unique=False,
+        on_delete=models.CASCADE,
+    )
+    space = models.ForeignKey(
+        Space,
+        related_name="space_moderator_request_space",
+        null=True,
+        unique=False,
+        on_delete=models.CASCADE,
+    )
+    status = models.CharField(
+        max_length=300, blank=False, null=False, unique=False, choices = SPACE_REQUEST_STATUS , default="Pending"
+    )
 
 class Label(models.Model):
     name = models.CharField(
