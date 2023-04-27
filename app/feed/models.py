@@ -32,6 +32,7 @@ class Label(models.Model):
     name = models.CharField(
         max_length=300, blank=False, null=False, unique=False, default=""
     )
+    qid = models.CharField(max_length=50, null=True, default="")
 
     def __str__(self):
         return self.name
@@ -54,7 +55,7 @@ class Post(models.Model):
         max_length=300, blank=False, null=False, unique=False, default=""
     )
     label = models.ManyToManyField(Label, blank=True, null=True)
-    image = models.FileField(upload_to="posts", default="../static/default_post_image.png", blank=True, unique=False)
+    image = models.FileField(upload_to="posts", default="../static/default_post_image.png", blank=True, null=True, unique=False)
     is_private = models.BooleanField(null=True, blank=True, default=False)
     created_time = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(
@@ -92,22 +93,15 @@ class Comment(models.Model):
 
 
 class textAnnotation(models.Model):
-    source = models.ForeignKey(Post, related_name='text_annotation', null=False, blank=False, on_delete=models.CASCADE)
+    source = models.ForeignKey(Post, related_name='post_annotation', null=False, blank=False, on_delete=models.CASCADE)
     type = models.TextField(blank=False, null=False)
     body_description = models.TextField(blank=False, null=False, unique=False)
-    created_by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="text_annotation_created_by")
+    created_by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="created_by")
     created_time = models.DateTimeField(auto_now_add=True)
     selector_type = models.IntegerField(blank=False, null=False)
     start = models.IntegerField(blank=False, null=False)
     end = models.IntegerField(blank=False, null=False)
 
-class ImageAnnotation(models.Model):
-    source = models.ForeignKey(Post, related_name='image_annotation', null=False, blank=False, on_delete=models.CASCADE)
-    type = models.TextField(blank=False, null=False)
-    body_description = models.TextField(blank=False, null=False, unique=False)
-    created_by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="image_annotation_created_by")
-    created_time = models.DateTimeField(auto_now_add=True)
-    location = models.TextField(blank=False, null=False)
 
 
 

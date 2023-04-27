@@ -28,6 +28,21 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 # Create your views here.
 
+import requests
+from django.http import JsonResponse
+
+def wikidata_search(request):
+    label = request.GET.get('label')
+    if label:
+        url = f"https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&type=item&search={label}"
+        response = requests.get(url)
+        if response.ok:
+            data = response.json()
+            print(data)
+            suggestions = [result["label"] for result in data["search"]]
+            return JsonResponse(suggestions, safe=False)
+    return JsonResponse([], safe=False)
+
 
 class SpaceViewSet(viewsets.ModelViewSet):
     serializer_class = SpaceCreateSerializer
@@ -504,9 +519,7 @@ class PostViewSet(viewsets.ModelViewSet):
         print(post_obj)
         post = PostListSerializer(post_obj).data
         comments = Comment.objects.filter(post=post_obj.id)
-        annotations = textAnnotation.objects.filter(source=post_obj.id)
         comments_data = CommentListSerializer(comments,many=True).data
-        annotations_data = TextAnnotationSerializer(annotations, many=True).data
         if request.user.is_anonymous == False:
             user = request.user
             user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
@@ -519,7 +532,6 @@ class PostViewSet(viewsets.ModelViewSet):
                     "is_post_owner": user.id ==post_obj.owner.id,
                     "post": post,
                     "comments": comments_data,
-                    "annotations": annotations_data,
                     "owner": user.first_name + " " + user.last_name,
                     "user_liked_posts": user_liked_posts,
                     "user_bookmarked_posts": user_bookmarked_posts,
@@ -703,17 +715,6 @@ class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,gene
             queryset = textAnnotation.objects.filter(source=source)
         else:
             queryset = textAnnotation.objects.all()
-        return queryset
-
-class CreateImagennotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
-    serializer_class = ImageAnnotationSerializer
-    
-    def get_queryset(self):
-        source = self.request.query_params.get('source')
-        if source:
-            queryset = ImageAnnotation.objects.filter(source=source)
-        else:
-            queryset = ImageAnnotation.objects.all()
         return queryset
     
 

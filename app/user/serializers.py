@@ -59,7 +59,6 @@ class UserRegisterSerializer(ModelSerializer):
 
 
 class UserListSerializer(serializers.ModelSerializer):
-    badge = serializers.SerializerMethodField('assign_badge')
     class Meta:
         model = User
         fields = [

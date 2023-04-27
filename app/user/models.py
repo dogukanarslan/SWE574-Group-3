@@ -3,24 +3,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 # Create your models here.
-class Badge(models.Model):
-    LEVEL_CHOICES = (
-        (1, "Bronze"),
-        (2, "Silver"),
-        (3, "Gold"),
-    )
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=200)
-    level = models.IntegerField(choices=LEVEL_CHOICES)
 
-    def __str__(self):
-        return self.name
-
-    def level_text(self):
-        return self.get_level_display()
-
-    def level_number(self):
-        return self.level
 
 class User(User):
     description = models.CharField(

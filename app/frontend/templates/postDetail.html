@@ -207,33 +207,5 @@
       }
     }
 
-  }
-
-  annotatedDescription.addEventListener('select', showAnnotationButton);
-
-  annotationButton.addEventListener('click', () => {
-    // Find highlighted text
-    selectedAnnotationText = window.getSelection().toString();
-
-    // Find starting index of highlighted text in complete description
-    const startIndex = '{{post.description}}'.search(selectedAnnotationText)
-    const endIndex = startIndex + selectedAnnotationText.length - 1
-
-    annotationStartInput.value = startIndex
-    annotationEndInput.value = endIndex
-
-    annotationModal.show();
-  })
-
-
-  document.addEventListener("selectionchange", event => {
-    if (window.getSelection) {
-      if (window.getSelection().toString() === '') {
-        hideAnnotationButton();
-      }
-    }
-  })
-
-</script>
 
 {% endblock %}

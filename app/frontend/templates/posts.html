@@ -16,92 +16,128 @@
       placeholder="Description" />
   </div>
 
-  <div class="mb-3">
-    <label for="post_link" class="form-label">Link</label>
-    <input id="post_link" class="form-control" type="text" name="post_link" value="{{ post_link }}" placeholder="Link"
-      required />
-  </div>
-
-  <div class="mb-3">
-    <label for="platform" class="form-label">Platform</label>
-    <input id="platform" class="form-control" type="text" name="platform" value="{{ platform }}"
-      placeholder="Platform" />
-  </div>
-
-  <div class="input-group mb-3">
-    <input type="file" class="form-control" id="image" name="image" placeholder="Choose a File">
-  </div>
-
-  <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#labelModal">Add
-    Label</button>
-
-  <button class="btn btn-dark">Submit</button>
-
-  <div class="modal fade" id="confirmationModal" role="dialog">
-    <div class="modal-dialog">
-
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Add existing link</h4>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="mb-3">
+            <label for="post_link" class="form-label">Link</label>
+            <input id="post_link" class="form-control" type="text" name="post_link" value="{{ post_link }}" placeholder="Link"
+                   required />
         </div>
 
-        <div class="modal-body">
-          This link already exists.
+        <div class="mb-3">
+            <label for="platform" class="form-label">Platform</label>
+            <input id="platform" class="form-control" type="text" name="platform" value="{{ platform }}"
+                   placeholder="Platform" />
         </div>
 
-        <div class="modal-footer">
-          {% if confirmation_modal %}
-          <input type="hidden" name="is_confirmed" value="True">
-          {% endif %}
-          <button class="btn btn-outline-dark" data-bs-dismiss="modal">Yes</button>
-          <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">No</button>
+        <div class="input-group mb-3">
+            <input type="file" class="form-control" id="image" name="image" placeholder="Choose a File">
         </div>
-      </div>
 
-    </div>
-  </div>
-</form>
-
-<div class="modal fade" id="labelModal" role="dialog">
-  <div class="modal-dialog">
-
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Add Label</h4>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body">
-        {% for label in labels %}
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="label" name="label" value="{{label.id}}">
-          <label class="form-check-label" for="label">
-            {{label}}
-          </label>
+        <div class="form-group">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="labelInput" name="label" placeholder="Enter a label" autocomplete="off">
+                        <button class="btn btn-outline-secondary" type="button" id="labelSearchButton">Search</button>
+                    </div>
+                    <div id="suggestions"></div>
         </div>
-        {% endfor %}
-      </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
 
-  </div>
-</div>
 
-{% for post in posts %}
-{% include '_post.html' %}
-{% endfor %}
+        <button class="btn btn-dark">Submit</button>
 
-<script>
-  const confirmationModal = new bootstrap.Modal('#confirmationModal')
-  const isConfirmed = '{{confirmation_modal}}'
+    </form>
 
-  if (isConfirmed) {
-    confirmationModal.show();
-  }
-</script>
+    {% for post in posts %}
+        {% include '_post.html' %}
+    {% endfor %}
+
+    <script>
+        const confirmationModal = new bootstrap.Modal('#confirmationModal')
+        const isConfirmed = '{{confirmation_modal}}'
+
+        if (isConfirmed) {
+            confirmationModal.show();
+        }
+    </script>
+    <script>
+        function clearSuggestions() {
+            const suggestionsElement = document.getElementById("suggestions");
+            suggestionsElement.innerHTML = "";
+        }
+    </script>
+
+    <script>
+        const labelInput = document.querySelector("#labelInput");
+        const searchResults = document.querySelector("#searchResults");
+        const suggestions = document.querySelector("#suggestions");
+
+        function clearSuggestions() {
+            const suggestionsElement = document.getElementById("suggestions");
+            suggestionsElement.innerHTML = "";
+        }
+
+        function addSearchResult(suggestion) {
+            // Create a div element to display the search result
+            const suggestionElement = document.createElement("div");
+            suggestionElement.classList.add("search-result");
+
+            // Set the inner HTML of the search result element
+            suggestionElement.innerHTML = `<span class="search-result-label">${suggestion }</span><br><span class="search-result-description qid">${suggestion.qid}</span>`;
+
+            // Add a click event listener to the search result element
+            suggestionElement.addEventListener("click", () => {
+                // Set the value of the label input field to the selected label and QID
+                labelInput.value = `${suggestion.label},${suggestion.qid}`;
+
+                // Clear the suggestions and search results
+                clearSuggestions();
+                clearSearchResults();
+
+                // Log the selected label and QID to the console
+                console.log(`${suggestion.label} (${suggestion.qid}) was selected`);
+
+                // Add the selected label and QID to the form data
+                const labelInputField = document.querySelector('input[name="label"]');
+                labelInputField.value = `${suggestion.label},${suggestion.qid}`;
+            });
+
+            // Append the search result element to the search results container
+            searchResults.appendChild(suggestionElement);
+
+            // Add a separator between search results
+            const separator = document.createElement("hr");
+            separator.classList.add("search-result-separator");
+            searchResults.appendChild(separator);
+        }
+
+
+        function clearSearchResults() {
+            searchResults.innerHTML = "";
+        }
+
+        labelInput.addEventListener("input", () => {
+            const labelName = labelInput.value.trim();
+            if (labelName.length > 2) {
+                fetch(`/wikidata-suggestions/?label=${labelName}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Network response was not ok (status code ${response.status})`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log(data);
+                        clearSuggestions();
+                        // Array.from(data).forEach(addSearchResult);
+                        data.suggestions.forEach(addSearchResult);
+                    })
+                    .catch(error => console.log(error));
+            } else {
+                clearSuggestions();
+                clearSearchResults();
+            }
+        });
+    </script>
+
+
 
 {% endblock %}

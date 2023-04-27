@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+
 {% block content %}
 
 {% for user in users %}
@@ -15,9 +15,6 @@
         </div>
     </div>
 </div>
-{% empty %}
-<div>You are not following anyone.</div>
 {% endfor %}
-    
 
 {% endblock %}

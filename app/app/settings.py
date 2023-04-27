@@ -14,8 +14,8 @@ import os
 import datetime
 from rest_framework import permissions
 
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 
 def get_env_variable(name):
@@ -176,7 +176,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static_cdn")
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
-
 
 JAZZMIN_SETTINGS = {
     # title of the window
