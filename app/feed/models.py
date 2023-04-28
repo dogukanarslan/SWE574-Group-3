@@ -149,6 +149,9 @@ class textAnnotation(models.Model):
     start = models.IntegerField(blank=False, null=False)
     end = models.IntegerField(blank=False, null=False)
 
+    def get_annotations_between(cls, start, end):
+        return cls.objects.filter(start__gte=start, end__lte=end)
+
 class ImageAnnotation(models.Model):
     source = models.ForeignKey(Post, related_name='image_annotation', null=False, blank=False, on_delete=models.CASCADE)
     type = models.TextField(blank=False, null=False)
