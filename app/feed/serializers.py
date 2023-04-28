@@ -110,6 +110,8 @@ class TextAnnotationSerializer(serializers.ModelSerializer):
 
 
 class ImageAnnotationSerializer(serializers.ModelSerializer):
+    created_by = UserListSerializer()
+    created_time = serializers.SerializerMethodField('convert_date')
     class Meta:
         model = ImageAnnotation
         fields = ('id', 'source', 'type', 'body_description', 'created_by', 'created_time', 'location')

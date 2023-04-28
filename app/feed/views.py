@@ -1014,15 +1014,27 @@ class PostViewSet(viewsets.ModelViewSet):
 
 class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
     serializer_class = TextAnnotationSerializer
-    
+
     def get_queryset(self):
         source = self.request.query_params.get('source')
+        start = self.request.query_params.get('start')
+        end = self.request.query_params.get('end')
+
+        filters = {}
         if source:
-            queryset = textAnnotation.objects.filter(source=source)
-        else:
-            queryset = textAnnotation.objects.all()
+            filters['source'] = source
+
+        if start:
+            start = int(start)
+            filters['start'] = start
+
+        if end:
+            end = int(end)
+            filters['end'] = end
+
+        queryset = textAnnotation.objects.filter(**filters)
         return queryset
-    
+        
     def create(self, request, *args, **kwargs, ):
         user = request.user
         source = request.data.get("source")
@@ -1049,19 +1061,16 @@ class CreateImagennotationView(viewsets.ModelViewSet,generics.CreateAPIView,gene
         else:
             queryset = ImageAnnotation.objects.all()
         return queryset
-    
 
     def create(self, request, *args, **kwargs, ):
         user = request.user
         source = request.data.get("source")
         post = Post.objects.get(id=source)
-        start = request.data.get("start")
         body_description = request.data.get("body_description")
-        end = request.data.get("end")
+        location=request.data.get("location")
         type = request.data.get("type")
-        selector_type = request.data.get("selector_type")
         user_obj = User.objects.get(id=user.id)
 
-        textAnnotation.objects.create(source=post,start=start, end=end, type=type, selector_type=selector_type, created_by=user_obj, body_description=body_description)
+        ImageAnnotation.objects.create(source=post,location=location, type=type, created_by=user_obj, body_description=body_description)
         
         return redirect("/feed/post/" + str(source) + '/')
