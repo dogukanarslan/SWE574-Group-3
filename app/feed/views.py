@@ -1040,16 +1040,15 @@ class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,gene
         source = request.data.get("source")
         post = Post.objects.get(id=source)
         start = request.data.get("start")
-        body_description = request.data.get("body_description")
+        body = request.data.get("body")
         end = request.data.get("end")
         type = request.data.get("type")
         selector_type = request.data.get("selector_type")
         user_obj = User.objects.get(id=user.id)
 
-        textAnnotation.objects.create(source=post,start=start, end=end, type=type, selector_type=selector_type, created_by=user_obj, body_description=body_description)
+        textAnnotation.objects.create(source=post,start=start, end=end, type=type, selector_type=selector_type, created_by=user_obj, body=body)
         
         return redirect("/feed/post/" + str(source) + '/')
-
 
 class CreateImagennotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
     serializer_class = ImageAnnotationSerializer
