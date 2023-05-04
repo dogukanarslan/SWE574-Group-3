@@ -11,6 +11,7 @@ router.register("label", views.LabelViewSet)
 router.register("post", views.PostViewSet)
 router.register("annotation", views.CreateTextAnnotationView, basename="annotation")
 router.register("image-annotation", views.CreateImagennotationView, basename="image-annotation")
+router.register("annotation-comment", views.AnnotationCommentViewSet, basename="annotation-comment")
 
 
 app_name = "meal"

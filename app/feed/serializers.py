@@ -97,17 +97,26 @@ class SpaceListSerializer(serializers.ModelSerializer):
         model = Space
         fields = "__all__"
 
+class TextAnnotationCommentSerializer(serializers.ModelSerializer):
+    created_by = UserListSerializer()
+    created_time = serializers.SerializerMethodField('convert_date')
+    class Meta:
+        model = AnnotationComment
+        fields = ('id', 'annotation', 'reply_body', 'created_by', 'created_time')
+
+    def convert_date(self, obj):
+        return obj.created_time
 
 class TextAnnotationSerializer(serializers.ModelSerializer):
     created_by = UserListSerializer()
     created_time = serializers.SerializerMethodField('convert_date')
-
+    replies=TextAnnotationCommentSerializer(many=True)
     class Meta:
         model = textAnnotation
-        fields = ('id', 'source', 'type', 'body', 'created_by', 'created_time', 'selector_type', 'start', 'end')
+        fields = ('id', 'source', 'type', 'body', 'created_by', 'created_time', 'selector_type', 'start', 'end', 'replies')
+
     def convert_date(self, obj):
         return obj.created_time
-
 
 class ImageAnnotationSerializer(serializers.ModelSerializer):
     created_by = UserListSerializer()
@@ -118,3 +127,5 @@ class ImageAnnotationSerializer(serializers.ModelSerializer):
     
     def convert_date(self, obj):
         return obj.created_time
+
+

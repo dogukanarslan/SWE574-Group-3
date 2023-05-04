@@ -1073,3 +1073,29 @@ class CreateImagennotationView(viewsets.ModelViewSet,generics.CreateAPIView,gene
         ImageAnnotation.objects.create(source=post,location=location, type=type, created_by=user_obj, body_description=body_description)
         
         return redirect("/feed/post/" + str(source) + '/')
+    
+class AnnotationCommentViewSet(viewsets.ModelViewSet):
+    serializer_class = TextAnnotationCommentSerializer
+
+    def get_queryset(self):
+        annotation = self.request.query_params.get('annotation')
+        filters = {}
+        if annotation:
+            filters['annotation'] = annotation
+
+        queryset = AnnotationComment.objects.filter(**filters)
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        annotation_id = request.data.get("annotation")
+        annotation = textAnnotation.objects.get(id=annotation_id)
+        reply_body = request.data.get("reply_body")
+        user_obj = User.objects.get(id=user.id)
+
+        AnnotationComment.objects.create(annotation=annotation, reply_body=reply_body, created_by=user_obj)
+
+        return redirect("/feed/post/" + str(annotation.source.id) + '/') 
+    
+
+

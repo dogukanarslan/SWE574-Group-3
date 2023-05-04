@@ -134,7 +134,6 @@ class Post(models.Model):
 
 
 class Comment(models.Model):
-
     post = models.ForeignKey(Post, related_name='post_review', null=True, blank=True, on_delete=models.CASCADE)
     user = models.ForeignKey(User, blank=False, null=True, on_delete=models.CASCADE, related_name="reviewer")
     comment = models.CharField( max_length=1000, blank=True, null=True)
@@ -161,6 +160,19 @@ class ImageAnnotation(models.Model):
     created_by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="image_annotation_created_by")
     created_time = models.DateTimeField(auto_now_add=True)
     location = models.TextField(blank=False, null=False)
+
+class AnnotationComment(models.Model):
+    annotation = models.ForeignKey(textAnnotation, related_name='replies', null=False, blank=False, on_delete=models.CASCADE)
+    reply_body = models.TextField(blank=False, null=False)
+    created_by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="text_annotation_reply_created_by")
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.reply_body
+
+    def get_annotations_between(cls, start, end):
+        return cls.objects.filter(start__gte=start, end__lte=end)
+
 
 
 
