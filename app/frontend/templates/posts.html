@@ -82,11 +82,45 @@
           </label>
         </div>
         {% endfor %}
+        <form id="data-form" method="get" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/wikidata-search/"> 
+          <div class="mb-3">
+            <label for="search_keyword" class="form-label">Tag</label>
+            <input id="search_keyword" class="form-control" type="text" name="search_keyword" placeholder="add tag"
+              required />
+            </div>
+            <button class="btn btn-outline-dark" >Search Label</button>
+        </form>
+        <ul class="list-group" id="tag-list"></ul>
       </div>
 
       <div class="modal-footer">
         <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
       </div>
+    </div>
+
+  </div>
+</div>
+<div class="modal fade" id="semanticModal" role="dialog">
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add Label</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <form method="get" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/wikidata-search/"> 
+          <div class="mb-3">
+            <label for="search_keyword" class="form-label">Tag</label>
+            <input id="search_keyword" class="form-control" type="text" name="search_keyword" placeholder="add tag"
+              required />
+            </div>
+            <button class="btn btn-outline-dark" >Search Label</button>
+        </form>
+      </div>
+
+      
     </div>
 
   </div>
@@ -98,12 +132,29 @@
 {% endfor %}
 
 <script>
+  const wikidataSearchForm = document.getElementById('data-form')
+  const tagList = document.getElementById('tag-list')
+  
   const confirmationModal = new bootstrap.Modal('#confirmationModal')
   const isConfirmed = '{{confirmation_modal}}'
 
   if (isConfirmed) {
     confirmationModal.show();
   }
+  wikidataSearchForm.addEventListener("submit", (e) => {
+    e.preventDefault()
+    fetch("/feed/wikidata-search/")
+    .then(response => response.json())
+    .then(data => {
+      tagList.innerHTML = ""
+      (data.forEach(element => {
+        const el = document.createElement('li')
+        el.classList = 'list-group-item'
+        el.innerHTML = element 
+        tagList.appendChild(el)
+      }))
+    })
+  })
 </script>
 
 {% endblock %}

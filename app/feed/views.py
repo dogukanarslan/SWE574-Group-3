@@ -28,6 +28,25 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 # Create your views here.
 
+import requests
+from django.http import JsonResponse
+
+
+
+class WikidataViewSet(viewsets.ViewSet):
+    def list(self, request):
+        label = "beşiktaş"
+        if label:
+            url = f"https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&type=item&search={label}"
+            response = requests.get(url)
+            if response.ok:
+                data = response.json()
+                suggestions = [result["label"] for result in data["search"]]
+                return JsonResponse(suggestions, safe=False)
+        return JsonResponse([], safe=False)
+        
+
+    
 
 class SpaceViewSet(viewsets.ModelViewSet):
     serializer_class = SpaceCreateSerializer
