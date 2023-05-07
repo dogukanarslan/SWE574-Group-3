@@ -14,7 +14,8 @@
                 </div>
                 <div class="card-text">{{ post.description }}</div>
                 <div class="card-text">{{ post.owner.first_name }} {{ post.owner.last_name }}{% if post.owner.badge %}
-                    <img src="{% static 'badges/'|add:post.owner.badge.name|add:'.png' %}" style="width:25px;height:25px;">
+                    <img src="{% static 'badges/'|add:post.owner.badge.name|add:'.png' %}"
+                        style="width:25px;height:25px;">
                     {% endif %}
                 </div>
                 <div class="card-text">{{ post.created_time }}</div>
@@ -43,8 +44,61 @@
                         class="btn btn-sm btn-outline-dark ms-2">Bookmark</a>
                     {% endif %}
                     <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/" class="btn btn-sm btn-outline-dark ms-2">Comment</a>
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" data-bs-toggle="modal"
+                        data-bs-target="#reportModal">Report</button>
+
+
+                    <div class="modal fade" id="reportModal" role="dialog">
+                        <div class="modal-dialog">
+
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Report</h4>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <form>
+                                        <div class="mb-3">
+                                          <label for="report_message" class="form-label">Description</label>
+                                          <input id="report_message" class="form-control" type="text" name="report_message" placeholder="Description" />
+                                        </div>
+                                      </form>
+
+                                </div>
+                                <div class="modal-footer">
+                                    <a href="#" id="submit-report" class="btn btn-dark">Submit</a>
+
+                                    <button type="button" class="btn btn-sm btn-outline-dark ms-2" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Get references to the form and the submit button
+    const form = document.querySelector('form');
+    const submitButton = document.querySelector('#submit-report');
+  
+    // Add a click event listener to the submit button
+    submitButton.addEventListener('click', event => {
+      // Prevent the default form submission behavior
+      event.preventDefault();
+  
+      // Get the input value
+      const reportMessage = document.querySelector('#report_message').value;
+  
+      // Generate the URL with the input value
+      const url = `{{DOMAIN_URL}}/feed/post/{{post.id}}/report/?value=${reportMessage}`;
+  
+      // Navigate to the URL
+      window.location.href = url;
+    });
+  </script>
