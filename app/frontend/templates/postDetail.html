@@ -65,42 +65,19 @@
 
   <button class="btn btn-outline-dark">Submit</button>
 </form>
-
-<nav class="mt-3">
-  <div class="nav nav-tabs" id="nav-tab" role="tablist">
-    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#comments"
-      aria-selected="true">Comments</button>
-    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#annotations"
-      aria-selected="false">Annotations</button>
-  </div>
-</nav>
-<div class="tab-content" id="nav-tabContent">
-  <div class="tab-pane fade show active" id="comments">
-    {% for comment in comments %}
-    <div class="card mt-2">
-      <div class="card-body">
-        <h5 class="card-title">{{ comment.user.first_name}} {{ comment.user.last_name }}</h5>
-        <div class="card-text">{{ comment.created_time }}</div>
-        <div class="card-text">{{ comment.comment}}</div>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  <div class="tab-pane fade" id="annotations">
-    {% for annotation in annotations %}
-    <div id="{{annotation.id}}" class="card mt-2">
-      <div class="card-body">
-        <h5 class="card-title">{{ annotation.created_by.first_name }} {{ annotation.created_by.last_name }}</h5>
-        <div class="card-text">{{ annotation.created_time }}</div>
-        <div class="card-text">{{ annotation.body_description }}</div>
-        <button class="btn btn-sm btn-outline-dark mt-2"
-          onclick='showAnnotatedText("{{annotation.start}}", "{{annotation.end}}", "{{annotation.body_description}}")'>Show
-          Annotation</button>
-      </div>
-    </div>
-    {% endfor %}
+<br>
+{% if comments %}
+<h4>Comments</h4>
+{% for comment in comments %}
+<div class="card mt-2">
+  <div class="card-body">
+    <h5 class="card-title">{{ comment.user.first_name}} {{ comment.user.last_name }}</h5>
+    <div class="card-text">{{ comment.created_time }}</div>
+    <div class="card-text">{{ comment.comment}}</div>
   </div>
 </div>
+{% endfor %}
+{% endif %}
 
 <script>
   const r = Recogito.init({
@@ -110,7 +87,7 @@
     ],
   });
 
-  r.setAuthInfo({id: '{{user.id}}', displayName: '{{user.first_name}} {{user.last_name}}'})
+  r.setAuthInfo({ id: '{{user.id}}', displayName: '{{user.first_name}} {{user.last_name}}' })
 
   const showAnnotationsButton = document.getElementById('show-annotations');
   const clearAnnotationsButton = document.getElementById('clear-annotations');
