@@ -13,6 +13,8 @@ router.register("annotation", views.CreateTextAnnotationView, basename="annotati
 router.register("image-annotation", views.CreateImagennotationView, basename="image-annotation")
 
 
+
+
 app_name = "meal"
 
 urlpatterns = [

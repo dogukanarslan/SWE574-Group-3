@@ -9,10 +9,12 @@
                 <a class="nav-link{% if request.path == '/feed/post/'%} active{% endif %}"
                     href="{{DOMAIN_URL}}/feed/post/">Recent Posts</a>
             </li>
+
             <li class="nav-item">
-                <a class="nav-link{% if request.path == '/feed/post/'%} active{% endif %}"
+                <a class="nav-link{% if request.path == '/feed/explore/'%} active{% endif %}"
                     href="{{DOMAIN_URL}}/feed/explore/">Explore</a>
             </li>
+
             <li class="nav-item">
                 <a class="nav-link{% if request.path == '/feed/space/own_spaces/'%} active{% endif %}"
                     href="{{DOMAIN_URL}}/feed/space/own_spaces/">Your Spaces</a>
