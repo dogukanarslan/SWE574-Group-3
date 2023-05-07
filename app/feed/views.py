@@ -1034,21 +1034,35 @@ class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,gene
 
         queryset = textAnnotation.objects.filter(**filters)
         return queryset
-        
+
     def create(self, request, *args, **kwargs, ):
         user = request.user
-        source = request.data.get("source")
-        post = Post.objects.get(id=source)
+        source_id = request.data.get("source_id")
         start = request.data.get("start")
         body = request.data.get("body")
         end = request.data.get("end")
         type = request.data.get("type")
         selector_type = request.data.get("selector_type")
-        user_obj = User.objects.get(id=user.id)
 
-        textAnnotation.objects.create(source=post,start=start, end=end, type=type, selector_type=selector_type, created_by=user_obj, body=body)
-        
-        return redirect("/feed/post/" + str(source) + '/')
+        # Create annotation
+        newAnnotation = textAnnotation.objects.create(source_id=source_id,start=start, end=end, type=type, selector_type=selector_type, user_id=user.id)
+
+        # Create first annotation comment
+        AnnotationComment.objects.create(value=body, annotation_id=newAnnotation.id, user_id=user.id)
+
+        return Response("Successfully created", status=201)
+
+    @action(detail=True, methods=["post"], name="Sync Annotation Body")
+    def sync_annotation_body(self, request, *args, **kwargs):
+        # Delete all annotation comments for given annotation
+        AnnotationComment.objects.filter(annotation_id=request.data.get("annotation_id")).delete()
+
+        # Add new annotation comments
+        for annotation_comment in request.data.get("body"):
+            AnnotationComment.objects.create(value=annotation_comment["value"], annotation_id=request.data.get("annotation_id"), user_id=annotation_comment["user_id"])
+
+        return Response("Annotation body is synced", 200)
+
 
 class CreateImagennotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
     serializer_class = ImageAnnotationSerializer
@@ -1077,25 +1091,10 @@ class CreateImagennotationView(viewsets.ModelViewSet,generics.CreateAPIView,gene
 class AnnotationCommentViewSet(viewsets.ModelViewSet):
     serializer_class = TextAnnotationCommentSerializer
 
-    def get_queryset(self):
-        annotation = self.request.query_params.get('annotation')
-        filters = {}
-        if annotation:
-            filters['annotation'] = annotation
-
-        queryset = AnnotationComment.objects.filter(**filters)
-        return queryset
-
-    def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs, ):
         user = request.user
-        annotation_id = request.data.get("annotation")
-        annotation = textAnnotation.objects.get(id=annotation_id)
-        reply_body = request.data.get("reply_body")
-        user_obj = User.objects.get(id=user.id)
+        annotation_id = request.data.get("annotation_id")
+        value = request.data.get("value")
+        AnnotationComment.objects.create(value=value, annotation_id=annotation_id, user_id=user.id)
 
-        AnnotationComment.objects.create(annotation=annotation, reply_body=reply_body, created_by=user_obj)
-
-        return redirect("/feed/post/" + str(annotation.source.id) + '/') 
-    
-
-
+        return Response("Successfully created", status=201)

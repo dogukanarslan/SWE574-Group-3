@@ -143,8 +143,7 @@ class Comment(models.Model):
 class textAnnotation(models.Model):
     source = models.ForeignKey(Post, related_name='text_annotation', null=False, blank=False, on_delete=models.CASCADE)
     type = models.TextField(blank=False, null=False)
-    body = ArrayField(models.TextField(blank=False, null=False, unique=False))
-    created_by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="text_annotation_created_by")
+    user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="text_annotation_created_by")
     created_time = models.DateTimeField(auto_now_add=True)
     selector_type = models.IntegerField(blank=False, null=False)
     start = models.IntegerField(blank=False, null=False)
@@ -163,16 +162,9 @@ class ImageAnnotation(models.Model):
 
 class AnnotationComment(models.Model):
     annotation = models.ForeignKey(textAnnotation, related_name='replies', null=False, blank=False, on_delete=models.CASCADE)
-    reply_body = models.TextField(blank=False, null=False)
-    created_by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="text_annotation_reply_created_by")
+    value = models.TextField(blank=False, null=False)
+    user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="text_annotation_reply_created_by")
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.reply_body
-
-    def get_annotations_between(cls, start, end):
-        return cls.objects.filter(start__gte=start, end__lte=end)
-
-
-
-
+        return self.value

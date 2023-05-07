@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
+<button id="show-annotations" class="btn btn-sm btn-outline-dark">Show Annotations</button>
+<button id="clear-annotations" class="btn btn-sm btn-outline-dark">Clear Annotations</button>
 <div class="card mt-2">
   <div class="row g-0">
     <div class="col-md-3">
@@ -14,11 +15,7 @@
           <span class="badge bg-dark mb-2">{{ post.platform }}</span>
         </div>
         <div class="card-text">
-          <textarea disabled class="selection-text" id="annotated-description"
-            rows="4">{{ post.description }}</textarea>
-          <button id="annotation-button" class="btn btn-outline-dark btn-sm d-none">
-            Annotate
-          </button>
+          <div id="annotated-description">{{ post.description }}</div>
         </div>
         <div class="card-text">{{ post.owner.first_name }} {{ post.owner.last_name }}</div>
         <div class="card-text">{{ post.created_time }}</div>
@@ -105,135 +102,106 @@
   </div>
 </div>
 
-<div class="modal fade" id="annotationModal">
-  <div class="modal-dialog">
-
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Annotate</h4>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body">
-
-        <form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/annotation/">
-          {% csrf_token %}
-
-          <div class="mb-3">
-            <label for="annotation" class="form-label">Annotation</label>
-            <input id="annotation" class="form-control" type="text" name="body_description" placeholder="Annotation"
-              required />
-
-            <input type="hidden" name="source" value="{{post.id}}" />
-            <input type="hidden" id="annotation-start" name="start" />
-            <input type="hidden" id="annotation-end" name="end" />
-            <input type="hidden" name="type" value="text" />
-            <input type="hidden" name="selector_type" value="{{0}}" />
-          </div>
-
-          <button class="btn btn-outline-dark">Submit</button>
-        </form>
-
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<div class="modal fade" id="annotatedTextModal">
-  <div class="modal-dialog">
-
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Annotation</h4>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body">
-        <h6>Description</h6>
-        <p id="annotated-text"></p>
-        <h6>Message</h6>
-        <p id="annotation-body-description"></p>
-
-      </div>
-    </div>
-
-  </div>
-</div>
-
 <script>
-  const annotationModal = new bootstrap.Modal('#annotationModal')
-  const annotatedTextModal = new bootstrap.Modal('#annotatedTextModal')
+  const r = Recogito.init({
+    content: document.getElementById('annotated-description'),
+    widgets: [
+      { widget: 'COMMENT' }
+    ],
+  });
 
-  const annotationButton = document.getElementById('annotation-button');
-  const annotatedDescription = document.getElementById('annotated-description');
-  const annotationStartInput = document.getElementById('annotation-start');
-  const annotationEndInput = document.getElementById('annotation-end');
-  const annotatedText = document.getElementById('annotated-text')
-  const annotationBodyDescription = document.getElementById('annotation-body-description')
+  r.setAuthInfo({id: '{{user.id}}', displayName: '{{user.first_name}} {{user.last_name}}'})
 
-  let selectedAnnotationText = ''
+  const showAnnotationsButton = document.getElementById('show-annotations');
+  const clearAnnotationsButton = document.getElementById('clear-annotations');
 
-
-  const showAnnotationButton = () => {
-    annotationButton.classList.remove('d-none');
-    annotationButton.classList.add('d-block');
-  }
-
-  const hideAnnotationButton = () => {
-    annotationButton.classList.remove('d-block');
-    annotationButton.classList.add('d-none');
-  }
-
-  const showAnnotatedText = (start, end, annotation) => {
-    const originalDescription = '{{post.description}}'
-    annotatedTextModal.show()
-    annotatedText.innerHTML = ''
-    annotationBodyDescription.innerHTML = annotation
-    let modifiedDescription = ''
-
-    for (let i = 0; i < originalDescription.length; i++) {
-      if (i >= start && i < end) {
-        modifiedDescription += originalDescription[i]
-      } else if (i == end) {
-        modifiedDescription += originalDescription[i]
-        const node = document.createElement('mark')
-        const textNode = document.createTextNode(modifiedDescription)
-        node.appendChild(textNode)
-        annotatedText.appendChild(node)
-      } else {
-        const textNode = document.createTextNode(originalDescription[i])
-        annotatedText.appendChild(textNode)
-      }
-    }
-
-  }
-
-  annotatedDescription.addEventListener('select', showAnnotationButton);
-
-  annotationButton.addEventListener('click', () => {
-    // Find highlighted text
-    selectedAnnotationText = window.getSelection().toString();
-
-    // Find starting index of highlighted text in complete description
-    const startIndex = '{{post.description}}'.search(selectedAnnotationText)
-    const endIndex = startIndex + selectedAnnotationText.length - 1
-
-    annotationStartInput.value = startIndex
-    annotationEndInput.value = endIndex
-
-    annotationModal.show();
+  clearAnnotationsButton.addEventListener('click', () => {
+    r.clearAnnotations();
   })
 
+  showAnnotationsButton.addEventListener('click', async () => {
+    const response = await (await fetch('/feed/annotation/?source={{post.id}}')).json()
 
-  document.addEventListener("selectionchange", event => {
-    if (window.getSelection) {
-      if (window.getSelection().toString() === '') {
-        hideAnnotationButton();
-      }
-    }
+    const annotations = response.results.map(result => {
+      return (
+        {
+          id: result.id,
+          type: 'Annotation',
+          body: result.replies.map(reply => (
+            {
+              type: 'TextualBody',
+              value: reply.value,
+              created: reply.created_time,
+              creator: { name: `${reply.user.first_name} ${reply.user.last_name}`, id: reply.user.id }
+            }
+          )),
+          target: {
+            selector: [{
+              type: 'TextPositionSelector',
+              start: result.start,
+              end: result.end
+            }]
+          }
+        }
+      )
+    })
+    r.setAnnotations(annotations)
   })
 
+  r.on('createAnnotation', function (annotation) {
+    const textPositionSelector = annotation.target.selector[1];
+    fetch('/feed/annotation/',
+      {
+        method: "POST",
+        mode: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": Cookies.get('csrftoken')
+        },
+        body: JSON.stringify({
+          source_id: '{{post.id}}',
+          selector_type: 1,
+          type: "text_position_selector",
+          created_by: '{{user.id}}',
+          start: textPositionSelector.start,
+          end: textPositionSelector.end,
+          body: annotation.body[0].value
+        })
+      }
+    )
+  });
+
+  r.on('deleteAnnotation', (annotation) => {
+    fetch(`/feed/annotation/${annotation.id}/`,
+      {
+        method: "DELETE",
+        headers: {
+          "X-CSRFToken": Cookies.get('csrftoken')
+        },
+      },
+    )
+  })
+
+  r.on('updateAnnotation', (annotation) => {
+    const userId = '{{user.id}}'
+    fetch(`/feed/annotation/${annotation.id}/sync_annotation_body/`,
+      {
+        method: "POST",
+        mode: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": Cookies.get('csrftoken')
+        },
+        body: JSON.stringify(
+          {
+            annotation_id: annotation.id,
+            body: annotation.body.map(annotationComment => {
+              return { value: annotationComment.value, user_id: annotationComment.creator?.id || Number(userId) }
+            })
+          })
+      }
+    )
+  })
 </script>
 
 {% endblock %}
