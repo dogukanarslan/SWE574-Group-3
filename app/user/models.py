@@ -54,7 +54,7 @@ class FriendRequest(models.Model):
     receiver = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name="friend_request_receiver")
     sender = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name="friend_request_sender")
 
-class Friends(models.Model):
+class Friends(models.Model): #owner --> uygulamaya giriş yapan kullanıcı. #friend_list benim takip ettiklerim
     owner = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name="friend_list_owner")
     friend_list = models.ManyToManyField(User, blank=True, null=True, related_name="friend_list")
 

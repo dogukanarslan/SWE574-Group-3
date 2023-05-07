@@ -15,7 +15,7 @@ from .serializers import *
 from .models import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from user.permissions import IsSpaceOwnerPermission, IsModeratorPermission
-from user.models import User
+from user.models import User, Friends
 from app.settings import DOMAIN_URL
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
@@ -24,9 +24,78 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import textAnnotation, Post
 from django_filters.rest_framework import DjangoFilterBackend
+from datetime import datetime, timedelta, date
+import datetime
 
 
 # Create your views here.
+
+def explore(request):
+    user = request.user
+    spaces = Space.objects.all()
+    posts = Post.objects.all()
+    recommended_posts = []
+
+    #friends list
+    friends = Friends.objects.get(owner=user.id)
+    followings = friends.friend_list.all()
+
+    for post in posts:
+        score = 0
+        # let's check if post is liked by someone the user follows
+        for person in post.liked_by.all():
+            if person == user:
+                continue  # skip if the user bookmarked their own post
+            if person in followings.all():
+                score += 3
+            else:
+                score += 1
+
+        # let's check if post is liked by someone the user follows
+        for person in post.bookmarked_by.all():
+            if person == user:
+                continue  # skip if the user bookmarked their own post
+            if person in followings.all():
+                score += 3
+            else:
+                score += 1
+
+        # let's check if post is shared by someone the user follows
+        if post.owner in followings.all():
+            score += 5
+
+        # let's check how recent the post is
+        days_since_creation = (datetime.date.today() - post.created_time.date()).days
+        if days_since_creation == 0:
+            score += 3
+        elif days_since_creation <= 7:
+            score += 2
+        elif days_since_creation <= 30:
+            score += 1
+
+        # here we are checking if post has any comments, and if the comments are shared by someone we follow.
+        comments = Comment.objects.filter(post=post)
+        for comment in comments:
+            if comment.user in followings.all():
+                score += 3
+            else:
+                score += 1
+
+        # here we are checking if post has any annotations, and if the annotations are shared by someone we follow.
+        for annotation in post.text_annotation.all():
+            if annotation.created_by in followings.all():
+                score += 3
+            else:
+                score += 1
+
+        recommended_posts.append([post, score])
+
+    # sort the recommended posts by their score in descending order
+    recommended_posts = sorted(recommended_posts, key=lambda x: x[1], reverse=True)
+
+    context = {'spaces': spaces, 'recommended_posts': recommended_posts}
+    return render(request, "explore.html", context)
+
 
 
 class SpaceViewSet(viewsets.ModelViewSet):

@@ -16,6 +16,7 @@ router.register("image-annotation", views.CreateImagennotationView, basename="im
 app_name = "meal"
 
 urlpatterns = [
-    path("", include(router.urls))
+    path('explore/', views.explore, name='explore'),
+    path("", include(router.urls)),
 ]
 

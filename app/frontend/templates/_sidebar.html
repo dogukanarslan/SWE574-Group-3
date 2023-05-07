@@ -10,6 +10,10 @@
                     href="{{DOMAIN_URL}}/feed/post/">Recent Posts</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link{% if request.path == '/feed/post/'%} active{% endif %}"
+                    href="{{DOMAIN_URL}}/feed/explore/">Explore</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link{% if request.path == '/feed/space/own_spaces/'%} active{% endif %}"
                     href="{{DOMAIN_URL}}/feed/space/own_spaces/">Your Spaces</a>
             </li>
@@ -24,10 +28,6 @@
             <li class="nav-item">
                 <a class="nav-link{% if request.path == '/feed/post/search_form/'%} active{% endif %}"
                     href="{{DOMAIN_URL}}/feed/post/search_form/">Search</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link{% if request.path == '/feed/space/list_moderator_requests/'%} active{% endif %}"
-                    href="{{DOMAIN_URL}}/feed/space/list_moderator_requests/">Moderator Requests</a>
             </li>
         </ul>
     </div>
