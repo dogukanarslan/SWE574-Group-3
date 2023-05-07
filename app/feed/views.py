@@ -634,25 +634,39 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.bookmarked_by.add(user)
         post.save()
+        labels=Label.objects.all()
         data = Post.objects.all().order_by("-id")
         posts = PostListSerializer(data, many=True).data
-        space_obj = Space.objects.get(id=post.space.id)
-        space = SpaceListSerializer(space_obj).data
         user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
         user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
-        # return Response({"detail":"Liked succesfully"},status=200)
-        return render(
-            request,
-            "spacePosts.html",
-            {
-                "space":space,
-                "posts": posts,
-                "user_liked_posts":user_liked_posts,
-                "user_bookmarked_posts":user_bookmarked_posts,
-                "owner": user.first_name + " " + user.last_name,
-                "DOMAIN_URL": DOMAIN_URL,
-            },
-        )
+        if post.space:
+            space_obj = Space.objects.get(id=post.space.id)
+            space = SpaceListSerializer(space_obj).data
+            return render(
+                request,
+                "spacePosts.html",
+                {
+                    "space":space,
+                    "posts": posts,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+        else:
+            return render(
+                request,
+                "posts.html",
+                {
+                    "posts": posts,
+                    "labels": labels,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
 
     @action(detail=True, methods=["get"], name="Like Post")
     def undo_bookmark_post(self, request, pk=None):
