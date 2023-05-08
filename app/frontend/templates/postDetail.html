@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
 
 <div class="card mt-2">
@@ -20,7 +20,10 @@
             Annotate
           </button>
         </div>
-        <div class="card-text">{{ post.owner.first_name }} {{ post.owner.last_name }}</div>
+        <div class="card-text">{{ post.owner.first_name }} {{ post.owner.last_name }}{% if post.owner.badge %}
+        <img src="{% static 'badges/'|add:post.owner.badge.name|add:'.png' %}" style="width:25px;height:25px;">
+        {% endif %}
+        </div>
         <div class="card-text">{{ post.created_time }}</div>
         <div>
           {% for label in post.label %}
@@ -82,7 +85,9 @@
     {% for comment in comments %}
     <div class="card mt-2">
       <div class="card-body">
-        <h5 class="card-title">{{ comment.user.first_name}} {{ comment.user.last_name }}</h5>
+        <h5 class="card-title">{{ comment.user.first_name}} {{ comment.user.last_name }}{% if comment.user.badge %}
+          <img src="{% static 'badges/'|add:comment.user.badge.name|add:'.png' %}" style="width:25px;height:25px;">
+          {% endif %}</h5>
         <div class="card-text">{{ comment.created_time }}</div>
         <div class="card-text">{{ comment.comment}}</div>
       </div>
@@ -93,7 +98,9 @@
     {% for annotation in annotations %}
     <div id="{{annotation.id}}" class="card mt-2">
       <div class="card-body">
-        <h5 class="card-title">{{ annotation.created_by.first_name }} {{ annotation.created_by.last_name }}</h5>
+        <h5 class="card-title">{{ annotation.created_by.first_name }} {{ annotation.created_by.last_name }}{% if annotation.created_by.badge %}
+          <img src="{% static 'badges/'|add:annotation.created_by.badge.name|add:'.png' %}" style="width:25px;height:25px;">
+          {% endif %}</h5>
         <div class="card-text">{{ annotation.created_time }}</div>
         <div class="card-text">{{ annotation.body_description }}</div>
         <button class="btn btn-sm btn-outline-dark mt-2"

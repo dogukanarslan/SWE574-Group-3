@@ -10,6 +10,7 @@ from rest_framework_jwt.settings import api_settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from user.models import User, Friends, FriendRequest, Badge
+from feed.models import Post, Comment
 
 
 JWT_PAYLOAD_HANDLER = api_settings.JWT_PAYLOAD_HANDLER
@@ -75,14 +76,17 @@ class UserListSerializer(serializers.ModelSerializer):
     def assign_badge(self,obj):
         try:
             friend_list = Friends.objects.filter(friend_list=obj)
+            liked_by = Post.objects.filter(liked_by=obj)
         except Friends.DoesNotExist:
             friend_list = []        
+            liked_by = []
         follower_count = len(friend_list)
-        if follower_count >= 3:
+        liked_count = len(liked_by)
+        if follower_count >= 3 and liked_count >= follower_count * 0.4:
             badge = Badge.objects.get(level=3) # Gold Badge
-        elif follower_count >= 2:
+        elif follower_count >= 2 and liked_count >= follower_count * 0.4:
             badge = Badge.objects.get(level=2) # Silver Badge
-        elif follower_count >= 1:
+        elif follower_count >= 1 and liked_count >= follower_count * 0.4:
             badge = Badge.objects.get(level=1) # Bronz Badge
         else:
             badge = None
