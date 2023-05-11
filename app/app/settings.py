@@ -34,7 +34,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_env_variable("SECRET_KEY")
+SECRET_KEY = 'your_secret_key'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -100,10 +100,10 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         # os.environ.get  => get variables from environment (of docker-compose)
         # all variables comes from docker-compose.yml
-        "HOST": get_env_variable("DB_HOST"),
-        "NAME": get_env_variable("DB_NAME"),
-        "USER": get_env_variable("DB_USER"),
-        "PASSWORD": get_env_variable("DB_PASS"),
+        "HOST": 'db',
+        "NAME": 'app',
+        "USER": 'ilayda',
+        "PASSWORD": '123123',
     }
 }
 
@@ -285,12 +285,12 @@ FIXTURE_DIRS = [
     os.path.join(BASE_DIR, 'fixtures')
 ]
 
-EMAIL_HOST = get_env_variable("EMAIL_HOST")
-EMAIL_HOST_USER = get_env_variable("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = get_env_variable("EMAIL_HOST_PASSWORD")
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER='swe573fall2022@gmail.com'
+EMAIL_HOST_PASSWORD='bhtv nxhm xedl jhmo'
 EMAIL_PORT = 587
-EMAIL_BACKEND = get_env_variable("EMAIL_BACKEND")
+EMAIL_BACKEND = 'EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend'
 EMAIL_TIMEOUT = 60
 EMAIL_USE_TLS = True
 
-DOMAIN_URL = get_env_variable("DOMAIN_URL")
+DOMAIN_URL='http://127.0.0.1:8000'

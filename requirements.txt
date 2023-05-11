@@ -13,7 +13,7 @@ django-elasticsearch-dsl-drf >= 0.21
 django-modeltranslation >= 0.16.2
 
 psycopg2-binary
-Pillow>=7.2.0,<7.3.0
+Pillow>=7.0.0,<9.4.0
 drf-yasg>=1.17.1,<1.18.0
 cryptography
 flake8>=3.6.0,<3.7.0
