@@ -529,7 +529,6 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         request.data._mutable = True
-
         post_link = request.data.get("post_link")
         existing_post = Post.objects.filter(post_link=post_link).first()
         is_confirmed = request.data.get("is_confirmed")
@@ -537,7 +536,6 @@ class PostViewSet(viewsets.ModelViewSet):
         request.data["owner"] = user.id
         user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
         user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data     
-
         if existing_post and not is_confirmed:
             data = Post.objects.all().order_by("-id")
             posts = PostListSerializer(data, many=True).data
@@ -554,17 +552,41 @@ class PostViewSet(viewsets.ModelViewSet):
                     "description": request.data.get("description"),
                     "platform": request.data.get("platform"),
                     "post_link": request.data.get("post_link"),
+                    "selected_semantic_tags": request.data.get("selected_semantic_tags"),
+                    "selected_non_semantic_tags": request.data.get("selected_non_semantic_tags"),
                     "confirmation_modal": True
                 },
             )
-
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         data = Post.objects.all().order_by("-id")
         posts = PostListSerializer(data, many=True).data
         headers = self.get_success_headers(serializer.data)
+        created_post_obj = Post.objects.get(id=serializer.data["id"])
+        if request.data.get("selected_semantic_tags") is not None and request.data.get("selected_semantic_tags")!='':
+            labels=request.data.get("selected_semantic_tags").split("item:")
+            for label in labels:
+                if label is not None and label!="":
+                    information = label.split("|")
+                    name=information[0]
+                    description=information[1]
+                    try:
+                        label = Label.objects.get(name=name,description=description)
+                    except:
+                        label=Label.objects.create(name=name,description=description)
+                    created_post_obj.label.add(label.id)
+
+        if request.data.get("selected_non_semantic_tags") is not None and request.data.get("selected_non_semantic_tags")!='':
+            labels=request.data.get("selected_non_semantic_tags").split(",")
+            for label in labels:
+                if label is not None and label!="":
+                    name=label
+                    try:
+                        label = Label.objects.get(name=name)
+                    except:
+                        label=Label.objects.create(name=name)
+                    created_post_obj.label.add(label.id)
         # return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         return render(
             request,

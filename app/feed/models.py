@@ -81,7 +81,7 @@ class Label(models.Model):
         max_length=300, blank=False, null=False, unique=False, default=""
     )
 
-    #qid = models.CharField(max_length=50, blank=False, null=True, unique=False, default="")
+    description = models.CharField(max_length=300, blank=True, null=True, unique=False, default="")
 
     def __str__(self):
         return self.name
