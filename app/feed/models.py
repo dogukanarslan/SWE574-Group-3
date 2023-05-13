@@ -2,6 +2,7 @@ from django.db import models
 from user.models import User
 from django.urls import reverse
 from django.contrib.postgres.fields import ArrayField
+from django.db.models import JSONField
 
 
 # Create your models here.
@@ -140,31 +141,23 @@ class Comment(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
 
 
-class textAnnotation(models.Model):
-    source = models.ForeignKey(Post, related_name='text_annotation', null=False, blank=False, on_delete=models.CASCADE)
-    type = models.TextField(blank=False, null=False)
-    user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="text_annotation_created_by")
-    created_time = models.DateTimeField(auto_now_add=True)
-    selector_type = models.IntegerField(blank=False, null=False)
-    start = models.IntegerField(blank=False, null=False)
-    end = models.IntegerField(blank=False, null=False)
+class TextAnnotation(models.Model):
+    context = models.CharField(max_length=255, default="http://www.w3.org/ns/anno.jsonld")
+    annotation_id = models.CharField(max_length=255, blank=True, null=True)
+    type = models.CharField(max_length=255, default='Annotation')
+    target = JSONField(blank=True, null=True)
+    body = models.TextField(blank=True, null=True)
+    creator = models.IntegerField(blank=False, null=False)
+    created = models.DateTimeField(auto_now_add=True)
 
-    def get_annotations_between(cls, start, end):
-        return cls.objects.filter(start__gte=start, end__lte=end)
         
 class ImageAnnotation(models.Model):
     source = models.ForeignKey(Post, related_name='image_annotation', null=False, blank=False, on_delete=models.CASCADE)
     type = models.TextField(blank=False, null=False)
     body_description = models.TextField(blank=False, null=False, unique=False)
-    created_by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="image_annotation_created_by")
-    created_time = models.DateTimeField(auto_now_add=True)
-    location = models.TextField(blank=False, null=False)
+    creator = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="image_annotation_created_by")
+    created = models.DateTimeField(auto_now_add=True)
+    image = models.TextField(blank=False, null=False)
 
-class AnnotationComment(models.Model):
-    annotation = models.ForeignKey(textAnnotation, related_name='replies', null=False, blank=False, on_delete=models.CASCADE)
-    value = models.TextField(blank=False, null=False)
-    user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="text_annotation_reply_created_by")
-    created_time = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.value
+

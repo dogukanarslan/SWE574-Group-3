@@ -97,35 +97,31 @@ class SpaceListSerializer(serializers.ModelSerializer):
         model = Space
         fields = "__all__"
 
-class TextAnnotationCommentSerializer(serializers.ModelSerializer):
-    user = UserListSerializer()
-    created_time = serializers.SerializerMethodField('convert_date')
-    class Meta:
-        model = AnnotationComment
-        fields = ('id', 'annotation', 'value', 'user', 'created_time')
-
-    def convert_date(self, obj):
-        return obj.created_time
-
 class TextAnnotationSerializer(serializers.ModelSerializer):
-    user = UserListSerializer()
-    created_time = serializers.SerializerMethodField('convert_date')
-    replies=TextAnnotationCommentSerializer(many=True)
+    creator = serializers.StringRelatedField(source='created_by.username')
+    created = serializers.SerializerMethodField('convert_date')
+
     class Meta:
-        model = textAnnotation
-        fields = ('id', 'source', 'type', 'user', 'created_time', 'selector_type', 'start', 'end', 'replies')
+        model = TextAnnotation
+        fields = ('id', 'context', 'annotation_id', 'type', 'creator', 'created', 'body', 'target')
 
     def convert_date(self, obj):
-        return obj.created_time
+        return obj.created
+    
+    def get_creator(self, obj):
+        user = User.objects.get(id=obj.creator)  # Fetch the User object using the creator_id
+        return UserListSerializer(user).data
 
 class ImageAnnotationSerializer(serializers.ModelSerializer):
-    created_by = UserListSerializer()
-    created_time = serializers.SerializerMethodField('convert_date')
+    creator = UserListSerializer()
+    created = serializers.SerializerMethodField('convert_date')
     class Meta:
         model = ImageAnnotation
-        fields = ('id', 'source', 'type', 'body_description', 'created_by', 'created_time', 'location')
+        fields = ('id', 'source', 'type', 'body_description', 'creator', 'created', 'image')
     
     def convert_date(self, obj):
         return obj.created_time
+
+
 
 
