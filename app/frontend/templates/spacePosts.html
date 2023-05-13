@@ -50,44 +50,187 @@
   <div class="input-group mb-3">
     <input class="form-control" type="file" id="image" name="image" placeholder="Choose File">
   </div>
-
-    <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#myModal">Add
+  <div class="mb-3">
+    <label for="non-semantic label" class="form-label">Add Non-Semantic Label</label>
+    <style type="text/css">
+      .bootstrap-tagsinput .tag {
+        margin-right: 2px;
+        color: white !important;
+        background-color: #0d6efd;
+        padding: 0.2rem;
+      }
+    </style>
+      <div class="input-group mb-3">
+        <input type="text" name="selected_non_semantic_tags" class="form-control p-4" data-role="tagsinput"/>
+      </div>
+  </div>
+  <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#labelModal">Add Semantic
     Label</button>
+    <input type="hidden" id="selected-semantic-tags" name="selected_semantic_tags" value="{{selected_semantic_tags}}">
+
   <button class="btn btn-dark ms-2">Submit</button>
 
   {% endif %}
 
-  <!-- Modal -->
-  <div class="modal fade" id="myModal" role="dialog">
+
+  <div class="modal fade" id="confirmationModal" role="dialog">
     <div class="modal-dialog">
 
-      <!-- Modal content-->
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title">Add Label</h4>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <h4 class="modal-title">Add existing link</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+
         <div class="modal-body">
-          <ul>
-            {% for label in labels %}
-            <input type="checkbox" id="label" name="label" value={{label.id}}>
-            <label for="label"> {{label}}</label><br>
-            {% endfor %}
-          </ul>
+          This link already exists.
         </div>
+
         <div class="modal-footer">
-          <button type="button" class="btn-close" data-bs-dismiss="modal">Close</button>
+          {% if confirmation_modal %}
+          <input type="hidden" name="is_confirmed" value="True">
+          {% endif %}
+          <button class="btn btn-outline-dark" data-bs-dismiss="modal">Yes</button>
+
+          <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">No</button>
         </div>
       </div>
 
     </div>
+  </div>
+</form>
+
+<div class="modal fade" id="labelModal" role="dialog">
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add Label</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="data-form" method="get" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/wikidata-search/"> 
+          <div class="mb-3">
+            <label for="search_keyword" class="form-label">Tag</label>
+            <input id="search_keyword" class="form-control" type="text" name="search_keyword" placeholder="add tag"
+              required />
+            </div>
+            <button class="btn btn-outline-dark" >Search Label</button>
+        </form>
+        <ul class="list-group semantic-tags mt-3" id="tag-list"></ul>
+        <input type="hidden" id="selected-semantic-tags" name="selected_semantic_tags">
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
 
   </div>
+</div>
 
-</form>
+<h3>Recent Posts</h3>
 
 {% for post in space.space_posts %}
 {% include '_postSpace.html' %}
 {% endfor %}
+
+<script>
+  const wikidataSearchForm = document.getElementById('data-form')
+  const tagList = document.getElementById('tag-list')
+  const label = document.getElementById('search_keyword')
+  
+  const confirmationModal = new bootstrap.Modal('#confirmationModal')
+  const isConfirmed = '{{confirmation_modal}}'
+
+  if (isConfirmed) {
+    confirmationModal.show();
+  }
+  wikidataSearchForm.addEventListener("submit", (e) => {
+    e.preventDefault()
+    fetch(`/feed/wikidata-search/?label=${label.value}`)
+    .then(response => response.json())
+    .then(data => {
+      tagList.innerHTML = ""
+      data.forEach(element => {
+        const el = document.createElement('li')
+        el.classList = 'list-group-item cursor-pointer'
+        titleEl=document.createElement('h6')
+        titleEl.innerHTML=element.label || "-"
+
+        descriptionEl=document.createElement('p')
+        descriptionEl.innerHTML=element.description || "-"
+
+        qidEl=document.createElement('span')
+        qidEl.innerHTML=element.id || "-"
+
+        el.appendChild(titleEl)
+        el.appendChild(descriptionEl)
+        el.appendChild(qidEl)
+
+        el.addEventListener("click", (e) => {
+          console.log("taglist",element.label)
+          el.classList.toggle('active');
+          updateSelectedTags();
+        });
+        tagList.appendChild(el)
+      })
+    })
+  });
+
+  function updateSelectedTags() {
+    const selectedTags = [];
+    const selectedElements = document.querySelectorAll('#tag-list li.active');
+    selectedElements.forEach(element => {
+      console.log("selected el",element)
+      const tagContent = [];
+      tagContent.push(element.querySelector('h6').textContent)
+      tagContent.push(element.querySelector('p').textContent)
+      tagContent.push(element.querySelector('span').textContent)
+      selectedTags.push(tagContent.join('|'));
+
+    });
+    console.log("selectedTags",selectedTags)
+    document.getElementById('selected-semantic-tags').value = selectedTags.join('"item:');
+    console.log(document.getElementById('selected-semantic-tags').value)
+  }
+
+</script>
+
+
+<script
+src="https://code.jquery.com/jquery-3.6.0.min.js"
+integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+crossorigin="anonymous"
+></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
+<script>
+$(function () {
+  $('input')
+    .on('change', function (event) {
+      var $element = $(event.target);
+      var $container = $element.closest('.example');
+
+      if (!$element.data('tagsinput')) return;
+
+      var val = $element.val();
+      if (val === null) val = 'null';
+      var items = $element.tagsinput('items');
+
+      $('code', $('pre.val', $container)).html(
+        $.isArray(val)
+          ? JSON.stringify(val)
+          : '"' + val.replace('"', '\\"') + '"'
+      );
+      $('code', $('pre.items', $container)).html(
+        JSON.stringify($element.tagsinput('items'))
+      );
+    })
+    .trigger('change');
+});
+</script>
 
 {% endblock %}

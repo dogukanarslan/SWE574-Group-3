@@ -24,7 +24,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import textAnnotation, Post
 from django_filters.rest_framework import DjangoFilterBackend
-
+import uuid
 import requests
 from django.http import JsonResponse
 
@@ -41,6 +41,7 @@ class WikidataViewSet(viewsets.ViewSet):
                 suggestions = []                
                 for result in data["search"]:
                     suggestions.append(result)
+                    print(result)
                 return JsonResponse(suggestions, safe=False)
         return JsonResponse([], safe=False)
 
@@ -529,6 +530,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         request.data._mutable = True
+        print(request.data)
         post_link = request.data.get("post_link")
         existing_post = Post.objects.filter(post_link=post_link).first()
         is_confirmed = request.data.get("is_confirmed")
@@ -566,26 +568,33 @@ class PostViewSet(viewsets.ModelViewSet):
         created_post_obj = Post.objects.get(id=serializer.data["id"])
         if request.data.get("selected_semantic_tags") is not None and request.data.get("selected_semantic_tags")!='':
             labels=request.data.get("selected_semantic_tags").split("item:")
+            print(labels)
             for label in labels:
                 if label is not None and label!="":
                     information = label.split("|")
                     name=information[0]
                     description=information[1]
+                    qid=information[2]
+                    print(name,description)
                     try:
-                        label = Label.objects.get(name=name,description=description)
+                        label = Label.objects.get(name=name,description=description,label_type="Semantic",qid=qid)
+                        print("try",label)
                     except:
-                        label=Label.objects.create(name=name,description=description)
+                        label=Label.objects.create(name=name,description=description,label_type="Semantic",qid=qid)
+                        print("except",label)
                     created_post_obj.label.add(label.id)
+                    print("created_post_obj",created_post_obj.label.all())
 
         if request.data.get("selected_non_semantic_tags") is not None and request.data.get("selected_non_semantic_tags")!='':
             labels=request.data.get("selected_non_semantic_tags").split(",")
             for label in labels:
                 if label is not None and label!="":
                     name=label
+                    qid=str(uuid.uuid4())
                     try:
-                        label = Label.objects.get(name=name)
+                        label = Label.objects.get(name=name,label_type="Non-Semantic",qid=qid)
                     except:
-                        label=Label.objects.create(name=name)
+                        label=Label.objects.create(name=name,label_type="Non-Semantic",qid=qid)
                     created_post_obj.label.add(label.id)
         # return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         return render(

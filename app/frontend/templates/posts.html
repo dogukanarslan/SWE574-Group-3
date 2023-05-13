@@ -142,10 +142,15 @@
         titleEl=document.createElement('h6')
         titleEl.innerHTML=element.label || "-"
 
-        descriptionEl=document.createElement('p6')
+        descriptionEl=document.createElement('p')
         descriptionEl.innerHTML=element.description || "-"
+
+        qidEl=document.createElement('span')
+        qidEl.innerHTML=element.id || "-"
+
         el.appendChild(titleEl)
         el.appendChild(descriptionEl)
+        el.appendChild(qidEl)
         el.addEventListener("click", (e) => {
           console.log("taglist",element.label)
           el.classList.toggle('active');
@@ -163,7 +168,8 @@
       console.log("selected el",element)
       const tagContent = [];
       tagContent.push(element.querySelector('h6').textContent)
-      tagContent.push(element.querySelector('p6').textContent)
+      tagContent.push(element.querySelector('p').textContent)
+      tagContent.push(element.querySelector('span').textContent)
       selectedTags.push(tagContent.join('|'));
 
     });
