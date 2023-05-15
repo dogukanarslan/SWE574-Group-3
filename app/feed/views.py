@@ -913,6 +913,7 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         user = request.user
         description = request.GET.get("value")
+        print(description)
         user_obj = User.objects.get(id=user.id)
         report_obj = Report.objects.create(user=user_obj,post=post,description=description)
         user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
