@@ -150,6 +150,7 @@
         el.appendChild(titleEl)
         el.appendChild(descriptionEl)
         el.appendChild(qidEl)
+
         el.addEventListener("click", (e) => {
           console.log("taglist",element.label)
           el.classList.toggle('active');
@@ -185,75 +186,32 @@ src="https://code.jquery.com/jquery-3.6.0.min.js"
 integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
 crossorigin="anonymous"
 ></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.0/js/bootstrap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
-
 <script>
-const btnAdd = document.querySelector('#btnAdd');
-const btnRemove = document.querySelector('#btnRemove');
-const listbox = document.querySelector('#list');
-const framework = document.querySelector('#framework');
-btnAdd.addEventListener('click', (e) => {
-  e.preventDefault();
+$(function () {
+  $('input')
+    .on('change', function (event) {
+      var $element = $(event.target);
+      var $container = $element.closest('.example');
 
-  // validate the option
-  if (framework.value.trim() === '') {
-    alert('Please enter the name.');
-    return;
-  }
+      if (!$element.data('tagsinput')) return;
 
-  const name = framework.value;
+      var val = $element.val();
+      if (val === null) val = 'null';
+      var items = $element.tagsinput('items');
 
-  // create a new option
-  const option = new Option(name, name);
-
-  // add it to the list
-  listbox.add(option, undefined);
-
-  // reset the value of the input
-  framework.value = '';
-  framework.focus();
-
-  // send an AJAX POST request to the backend API
-  fetch('/api/labels/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ name: name })
-  })
-  .then(response => {
-    if (response.ok) {
-      return response.json();
-    }
-    throw new Error('Network response was not ok.');
-  })
-  .then(data => {
-    console.log(data);
-  })
-  .catch(error => {
-    console.error('There was a problem with the fetch operation:', error);
-  });
-});
-
-btnRemove.addEventListener('click', (e) => {
-  e.preventDefault();
-
-  // save the selected options
-  let selected = [];
-
-  for (let i = 0; i < listbox.options.length; i++) {
-    selected[i] = listbox.options[i].selected;
-  }
-
-  // remove all selected option
-  let index = listbox.options.length;
-  while (index--) {
-    if (selected[index]) {
-      listbox.remove(index);
-    }
-  }
+      $('code', $('pre.val', $container)).html(
+        $.isArray(val)
+          ? JSON.stringify(val)
+          : '"' + val.replace('"', '\\"') + '"'
+      );
+      $('code', $('pre.items', $container)).html(
+        JSON.stringify($element.tagsinput('items'))
+      );
+    })
+    .trigger('change');
 });
 </script>
-
 
 {% endblock %}
