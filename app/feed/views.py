@@ -24,10 +24,29 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import textAnnotation, Post
 from django_filters.rest_framework import DjangoFilterBackend
+import uuid
+import re
+import random
 
+import requests
+from django.http import JsonResponse
 
 # Create your views here.
 
+class WikidataViewSet(viewsets.ViewSet):
+    def list(self, request):
+        label = request.GET.get("label")
+        if label:
+            url = f"https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&type=item&search={label}"
+            response = requests.get(url)
+            if response.ok:
+                data = response.json()
+                suggestions = []                
+                for result in data["search"]:
+                    suggestions.append(result)
+                    print(result)
+                return JsonResponse(suggestions, safe=False)
+        return JsonResponse([], safe=False)
 
 class SpaceViewSet(viewsets.ModelViewSet):
     serializer_class = SpaceCreateSerializer
@@ -494,6 +513,23 @@ class LabelViewSet(viewsets.ModelViewSet):
     serializer_class = LabelSerializer
     queryset = Label.objects.all()
 
+    def create(self, request, *args, **kwargs):
+        name = request.data.get('name')
+        if not name:
+            return Response({'name': 'This field is required.'}, status=400)
+
+        # check if name is a valid Wikidata query ID
+        if re.match(r'^Q\d+$', name):
+            label = Label.objects.create(name=name)
+            serializer = LabelSerializer(label)
+            return Response(serializer.data, status=201)
+        else:
+            # generate random QID
+            qid = '{}'.format(random.randint(1, 1000000000))
+            label = Label.objects.create(name=name, qid=qid)
+            serializer = LabelSerializer(label)
+            return Response(serializer.data, status=201)
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
@@ -514,7 +550,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         request.data._mutable = True
-
+        print(request.data)
         post_link = request.data.get("post_link")
         existing_post = Post.objects.filter(post_link=post_link).first()
         is_confirmed = request.data.get("is_confirmed")
@@ -522,7 +558,6 @@ class PostViewSet(viewsets.ModelViewSet):
         request.data["owner"] = user.id
         user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
         user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data     
-
         if existing_post and not is_confirmed:
             data = Post.objects.all().order_by("-id")
             posts = PostListSerializer(data, many=True).data
@@ -539,17 +574,48 @@ class PostViewSet(viewsets.ModelViewSet):
                     "description": request.data.get("description"),
                     "platform": request.data.get("platform"),
                     "post_link": request.data.get("post_link"),
+                    "selected_semantic_tags": request.data.get("selected_semantic_tags"),
+                    "selected_non_semantic_tags": request.data.get("selected_non_semantic_tags"),
                     "confirmation_modal": True
                 },
             )
-
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         data = Post.objects.all().order_by("-id")
         posts = PostListSerializer(data, many=True).data
         headers = self.get_success_headers(serializer.data)
+        created_post_obj = Post.objects.get(id=serializer.data["id"])
+        if request.data.get("selected_semantic_tags") is not None and request.data.get("selected_semantic_tags")!='':
+            labels=request.data.get("selected_semantic_tags").split("item:")
+            print(labels)
+            for label in labels:
+                if label is not None and label!="":
+                    information = label.split("|")
+                    name=information[0]
+                    description=information[1]
+                    qid=information[2]
+                    print(name,description)
+                    try:
+                        label = Label.objects.get(name=name,description=description,label_type="Semantic",qid=qid)
+                        print("try",label)
+                    except:
+                        label=Label.objects.create(name=name,description=description,label_type="Semantic",qid=qid)
+                        print("except",label)
+                    created_post_obj.label.add(label.id)
+                    print("created_post_obj",created_post_obj.label.all())
+
+        if request.data.get("selected_non_semantic_tags") is not None and request.data.get("selected_non_semantic_tags")!='':
+            labels=request.data.get("selected_non_semantic_tags").split(",")
+            for label in labels:
+                if label is not None and label!="":
+                    name=label
+                    qid=str(uuid.uuid4())
+                    try:
+                        label = Label.objects.get(name=name,label_type="Non-Semantic",qid=qid)
+                    except:
+                        label=Label.objects.create(name=name,label_type="Non-Semantic",qid=qid)
+                    created_post_obj.label.add(label.id)
         # return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         return render(
             request,
