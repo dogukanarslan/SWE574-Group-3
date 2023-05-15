@@ -89,8 +89,7 @@ class Label(models.Model):
     label_type = models.CharField(
         max_length=300, blank=False, null=False, unique=False, choices = LABEL_TYPE , default="Non-Semantic")
     qid = models.CharField(
-        max_length=300, blank=False, null=False, unique=False, default=""
-
+        max_length=300, blank=False, null=False, unique=False, default="")
     def __str__(self):
         return self.name
 
