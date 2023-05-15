@@ -906,6 +906,13 @@ class PostViewSet(viewsets.ModelViewSet):
         annotations = textAnnotation.objects.filter(source=post_obj.id)
         comments_data = CommentListSerializer(comments,many=True).data
         annotations_data = TextAnnotationSerializer(annotations, many=True).data
+
+        comments_of_posts = Comment.objects.filter(post=post_obj.id).first()
+        text_annotations_of_posts = textAnnotation.objects.filter(source=post_obj.id).first()
+        image_annotations_of_posts = ImageAnnotation.objects.filter(source=post_obj.id).first()
+        is_delete_allowed=False
+        if not comments_of_posts and not text_annotations_of_posts and not image_annotations_of_posts:
+            is_delete_allowed=True
         if request.user.is_anonymous == False:
             user = request.user
             user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
@@ -914,6 +921,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 request,
                 "postDetail.html",
                 {
+                    "is_delete_allowed":is_delete_allowed,
                     "is_post_owner": user.id ==post_obj.owner.id,
                     "post": post,
                     "comments": comments_data,
@@ -945,25 +953,81 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         user = request.user
         if user.id == post.owner.id:
-            space_id = post.space.id
             post_id = post.id
             post.delete()
-        space = SpaceListSerializer(Space.objects.get(id=post.space.id)).data
-        data = PostListSerializer(Post.objects.filter(space=space_id),many=True).data
+        labels=Label.objects.all()
+        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
+        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
+        posts = PostListSerializer(Post.objects.all().order_by("created_time"),many=True).data
+        if post.space:
+            space = SpaceListSerializer(Space.objects.get(id=post.space.id)).data
+            data = PostListSerializer(Post.objects.filter(space=space["id"]),many=True).data
+            return render(
+                request,
+                "spacePosts.html",
+                {
+                    "space":space,
+                    "posts": data,
+                    "labels":labels,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+        else:
+            return render(
+                request,
+                "posts.html",
+                {
+                    "posts": posts,
+                    "labels": labels,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+    @action(detail=True, methods=["get"], name="Like Post")
+    def report(self, request, pk=None):
+        post = self.get_object()
+        user = request.user
+        description = request.GET.get("value")
+        print(description)
+        user_obj = User.objects.get(id=user.id)
+        report_obj = Report.objects.create(user=user_obj,post=post,description=description)
         user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
         user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data 
-        return render(
-            request,
-            "spacePosts.html",
-            {
-                "space":space,
-                "posts": data,
-                "user_liked_posts":user_liked_posts,
-                "user_bookmarked_posts":user_bookmarked_posts,
-                "owner": user.first_name + " " + user.last_name,
-                "DOMAIN_URL": DOMAIN_URL,
-            },
-        )
+        if post.space:
+            space = SpaceListSerializer(Space.objects.get(id=post.space.id)).data
+            data = PostListSerializer(Post.objects.filter(space=space["id"]),many=True).data
+            return render(
+                request,
+                "spacePosts.html",
+                {
+                    "space":space,
+                    "posts": data,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+        else:
+            posts=PostListSerializer(Post.objects.all(),many=True).data
+            labels=Label.objects.all()
+            return render(
+                request,
+                "posts.html",
+                {
+                    "posts": posts,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "labels": labels,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
     @action(detail=True, methods=["get"], name="Like Post")
     def edit_form(self, request, pk=None):
         post_obj = self.get_object()

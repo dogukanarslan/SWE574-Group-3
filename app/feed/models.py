@@ -168,4 +168,10 @@ class ImageAnnotation(models.Model):
     location = models.TextField(blank=False, null=False)
 
 
-
+class Report(models.Model):
+    post = models.ForeignKey(Post, related_name='post_report', null=True, blank=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, blank=False, null=True, on_delete=models.CASCADE, related_name="reporter")
+    created_time = models.DateTimeField(auto_now_add=True)
+    description = models.CharField(
+        max_length=300, blank=True, null=True, unique=False, default=""
+    )
