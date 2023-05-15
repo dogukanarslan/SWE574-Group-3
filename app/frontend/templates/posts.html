@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/post/">
+<form id="main"  method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/post/">
   {% csrf_token %}
   <h3>Create a Post</h3>
 
@@ -43,13 +43,14 @@
       }
     </style>
       <div class="input-group mb-3">
-        <input id="framework" type="text" class="form-control p-4" data-role="tagsinput" placeholder="Enter Non-Semantic Label" />
-        <button id="btnAdd">Add</button>
+        <input type="text" name="selected_non_semantic_tags" class="form-control p-4" data-role="tagsinput"/>
       </div>
-   </div>
+  </div>
+
 
   <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#labelModal">Add Semantic
     Label</button>
+  <input type="hidden" id="selected-semantic-tags" name="selected_semantic_tags" value="{{selected_semantic_tags}}">
 
   <button class="btn btn-dark">Submit</button>
 
@@ -71,6 +72,7 @@
           <input type="hidden" name="is_confirmed" value="True">
           {% endif %}
           <button class="btn btn-outline-dark" data-bs-dismiss="modal">Yes</button>
+
           <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">No</button>
         </div>
       </div>
@@ -89,14 +91,6 @@
       </div>
 
       <div class="modal-body">
-        {% for label in labels %}
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="label" name="label" value="{{label.id}}">
-          <label class="form-check-label" for="label">
-            {{label}}
-          </label>
-        </div>
-        {% endfor %}
         <form id="data-form" method="get" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/wikidata-search/"> 
           <div class="mb-3">
             <label for="search_keyword" class="form-label">Tag</label>
@@ -106,6 +100,8 @@
             <button class="btn btn-outline-dark" >Search Label</button>
         </form>
         <ul class="list-group semantic-tags mt-3" id="tag-list"></ul>
+        <input type="hidden" id="selected-semantic-tags" name="selected_semantic_tags">
+
       </div>
 
       <div class="modal-footer">
@@ -145,19 +141,44 @@
         titleEl=document.createElement('h6')
         titleEl.innerHTML=element.label || "-"
 
-        descriptionEl=document.createElement('p6')
+        descriptionEl=document.createElement('p')
         descriptionEl.innerHTML=element.description || "-"
+
+        qidEl=document.createElement('span')
+        qidEl.innerHTML=element.id || "-"
+
         el.appendChild(titleEl)
         el.appendChild(descriptionEl)
+        el.appendChild(qidEl)
         el.addEventListener("click", (e) => {
-          console.log(element.label)
-        }
-        )
+          console.log("taglist",element.label)
+          el.classList.toggle('active');
+          updateSelectedTags();
+        });
         tagList.appendChild(el)
       })
     })
-  })
+  });
+
+  function updateSelectedTags() {
+    const selectedTags = [];
+    const selectedElements = document.querySelectorAll('#tag-list li.active');
+    selectedElements.forEach(element => {
+      console.log("selected el",element)
+      const tagContent = [];
+      tagContent.push(element.querySelector('h6').textContent)
+      tagContent.push(element.querySelector('p').textContent)
+      tagContent.push(element.querySelector('span').textContent)
+      selectedTags.push(tagContent.join('|'));
+
+    });
+    console.log("selectedTags",selectedTags)
+    document.getElementById('selected-semantic-tags').value = selectedTags.join('"item:');
+    console.log(document.getElementById('selected-semantic-tags').value)
+  }
+
 </script>
+
 
 <script
 src="https://code.jquery.com/jquery-3.6.0.min.js"

@@ -10,6 +10,11 @@ SPACE_REQUEST_STATUS =(
     ("Declined", "Declined")
 )
 
+LABEL_TYPE =(
+    ("Semantic", "Semantic"),
+    ("Non-Semantic", "Non-Semantic")
+)
+
 class Space(models.Model):
     title = models.CharField(
         max_length=300, blank=False, null=False, unique=False, default=""
@@ -80,8 +85,11 @@ class Label(models.Model):
     name = models.CharField(
         max_length=300, blank=False, null=False, unique=False, default=""
     )
-
-    qid = models.CharField(max_length=50, blank=False, null=True, unique=False, default="")
+    description = models.CharField(max_length=300, blank=True, null=True, unique=False, default="")
+    label_type = models.CharField(
+        max_length=300, blank=False, null=False, unique=False, choices = LABEL_TYPE , default="Non-Semantic")
+    qid = models.CharField(
+        max_length=300, blank=False, null=False, unique=False, default=""
 
     def __str__(self):
         return self.name
