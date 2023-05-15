@@ -25,6 +25,9 @@ from django.contrib import messages
 from .models import textAnnotation, Post
 from django_filters.rest_framework import DjangoFilterBackend
 import uuid
+import re
+import random
+
 import requests
 from django.http import JsonResponse
 
@@ -509,6 +512,23 @@ class SpaceViewSet(viewsets.ModelViewSet):
 class LabelViewSet(viewsets.ModelViewSet):
     serializer_class = LabelSerializer
     queryset = Label.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        name = request.data.get('name')
+        if not name:
+            return Response({'name': 'This field is required.'}, status=400)
+
+        # check if name is a valid Wikidata query ID
+        if re.match(r'^Q\d+$', name):
+            label = Label.objects.create(name=name)
+            serializer = LabelSerializer(label)
+            return Response(serializer.data, status=201)
+        else:
+            # generate random QID
+            qid = '{}'.format(random.randint(1, 1000000000))
+            label = Label.objects.create(name=name, qid=qid)
+            serializer = LabelSerializer(label)
+            return Response(serializer.data, status=201)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

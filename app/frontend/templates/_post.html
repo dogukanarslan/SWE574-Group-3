@@ -12,6 +12,11 @@
                     <span class="badge bg-dark mb-2">{{ post.platform }}</span>
 
                 </div>
+                <div class="card-text">                
+                    <label for="list">Non-semantic Tags:</label>
+                    <select id="list" name="list" multiple>
+                </div>
+
                 <div class="card-text">{{ post.description }}</div>
                 <div class="card-text">{{ post.owner.first_name }} {{ post.owner.last_name }}{% if post.owner.badge %}
                     <img src="{% static 'badges/'|add:post.owner.badge.name|add:'.png' %}" style="width:25px;height:25px;">
