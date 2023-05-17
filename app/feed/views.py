@@ -907,7 +907,7 @@ class PostViewSet(viewsets.ModelViewSet):
         annotations_data = TextAnnotationSerializer(annotations, many=True).data
 
         comments_of_posts = Comment.objects.filter(post=post_obj.id).first()
-        text_annotations_of_posts = textAnnotation.objects.filter(source=post_obj.id).first()
+        text_annotations_of_posts = TextAnnotation.objects.filter(source=post_obj.id).first()
         image_annotations_of_posts = ImageAnnotation.objects.filter(source=post_obj.id).first()
         is_delete_allowed=False
         if not comments_of_posts and not text_annotations_of_posts and not image_annotations_of_posts:
