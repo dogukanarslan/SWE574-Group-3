@@ -822,7 +822,7 @@ class PostViewSet(viewsets.ModelViewSet):
         print(post_obj)
         post = PostListSerializer(post_obj).data
         comments = Comment.objects.filter(post=post_obj.id)
-        annotations = TextAnnotation.objects.filter(source=post_obj.id)
+        annotations = TextAnnotation.objects.filter(id=post_obj.id)
         comments_data = CommentListSerializer(comments,many=True).data
         annotations_data = TextAnnotationSerializer(annotations, many=True).data
         if request.user.is_anonymous == False:
@@ -1016,32 +1016,19 @@ class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,gene
 
     def get_queryset(self):
         source = self.request.query_params.get("source")
-        start = self.request.query_params.get("start")
-        end = self.request.query_params.get("end")
 
         filters = {}
         if source:
-            filters["source"] = source
-
-        if start:
-            start = int(start)
-            filters["start"] = start
-
-        if end:
-            end = int(end)
-            filters["end"] = end
+            filters["target__source"] = DOMAIN_URL + '/' + source + '/'
 
         queryset = TextAnnotation.objects.filter(**filters)
         return queryset
 
     def create(self, request, *args, **kwargs, ):
-        user = request.user
-        annotation_id=request.data.get("annotation_id")
         body = request.data.get("body")
-        type = request.data.get("type")
         target=request.data.get("target")
 
-        TextAnnotation.objects.create(annotation_id=annotation_id, type=type, creator=user.id, body=body, target=target)
+        TextAnnotation.objects.create(body=body, target=target)
 
         return Response("Annotation saved", status=201)
 

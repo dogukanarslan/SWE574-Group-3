@@ -2,7 +2,7 @@
 
 {% block content %}
 <button id="show-annotations" class="btn btn-sm btn-outline-dark">Show Annotations</button>
-<button id="clear-annotations" class="btn btn-sm btn-outline-dark">Clear Annotations</button>
+<button id="hide-annotations" class="btn btn-sm btn-outline-dark">Hide Annotations</button>
 <div class="card mt-2">
   <div class="row g-0">
     <div class="col-md-3">
@@ -80,19 +80,45 @@
 {% endif %}
 
 <script>
+  const AnnotationWidget = (args) => {
+    if (args.annotation.underlying.id) {
+      const annotationText = document.createElement('div');
+      annotationText.classList = 'p-2'
+      annotationText.textContent = args.annotation.underlying.body || 'No annotation...';
+
+      return annotationText;
+
+    } else {
+      const addValue = (event) => {
+        args.onUpsertBody({ value: event.target.value })
+      }
+
+      const formGroup = document.createElement('div')
+      formGroup.classList = 'p-2';
+
+      const formInput = document.createElement('input')
+      formInput.classList = 'form-control'
+      formInput.name = 'annotation-input';
+      formInput.placeholder = 'Add an annotation...'
+      formInput.addEventListener('change', addValue)
+
+      formGroup.appendChild(formInput)
+
+      return formGroup;
+    }
+  }
+
   const r = Recogito.init({
     content: document.getElementById('annotated-description'),
     widgets: [
-      { widget: 'COMMENT' }
+      { widget: AnnotationWidget }
     ],
   });
 
-  r.setAuthInfo({ id: '{{user.id}}', displayName: '{{user.first_name}} {{user.last_name}}' })
-
   const showAnnotationsButton = document.getElementById('show-annotations');
-  const clearAnnotationsButton = document.getElementById('clear-annotations');
+  const hideAnnotationsButton = document.getElementById('hide-annotations');
 
-  clearAnnotationsButton.addEventListener('click', () => {
+  hideAnnotationsButton.addEventListener('click', () => {
     r.clearAnnotations();
   })
 
@@ -104,19 +130,12 @@
         {
           id: result.id,
           type: 'Annotation',
-          body: result.replies.map(reply => (
-            {
-              type: 'TextualBody',
-              value: reply.value,
-              created: reply.created_time,
-              creator: { name: `${reply.user.first_name} ${reply.user.last_name}`, id: reply.user.id }
-            }
-          )),
+          body: result.body.value,
           target: {
             selector: [{
-              type: 'TextPositionSelector',
-              start: result.start,
-              end: result.end
+              type: result.target.selector.type,
+              start: result.target.selector.start,
+              end: result.target.selector.end
             }]
           }
         }
@@ -136,16 +155,19 @@
           "X-CSRFToken": Cookies.get('csrftoken')
         },
         body: JSON.stringify({
-          source_id: '{{post.id}}',
-          selector_type: 1,
-          type: "text_position_selector",
-          created_by: '{{user.id}}',
-          start: textPositionSelector.start,
-          end: textPositionSelector.end,
-          body: annotation.body[0].value
+          body: { type: 'TextualBody', value: annotation.body[0].value },
+          target: {
+            source: "{{DOMAIN_URL}}/{{post.id}}/",
+            selector: {
+              type: "TextPositionSelector",
+              start: textPositionSelector.start,
+              end: textPositionSelector.end
+            }
+          }
         })
       }
     )
+    window.location.reload();
   });
 
   r.on('deleteAnnotation', (annotation) => {
@@ -156,27 +178,6 @@
           "X-CSRFToken": Cookies.get('csrftoken')
         },
       },
-    )
-  })
-
-  r.on('updateAnnotation', (annotation) => {
-    const userId = '{{user.id}}'
-    fetch(`/feed/annotation/${annotation.id}/sync_annotation_body/`,
-      {
-        method: "POST",
-        mode: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": Cookies.get('csrftoken')
-        },
-        body: JSON.stringify(
-          {
-            annotation_id: annotation.id,
-            body: annotation.body.map(annotationComment => {
-              return { value: annotationComment.value, user_id: annotationComment.creator?.id || Number(userId) }
-            })
-          })
-      }
     )
   })
 </script>

@@ -98,19 +98,14 @@ class SpaceListSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class TextAnnotationSerializer(serializers.ModelSerializer):
-    creator = serializers.StringRelatedField(source='created_by.username')
     created = serializers.SerializerMethodField('convert_date')
 
     class Meta:
         model = TextAnnotation
-        fields = ('id', 'context', 'annotation_id', 'type', 'creator', 'created', 'body', 'target')
+        fields = ('id', 'context', 'type', 'created', 'body', 'target')
 
     def convert_date(self, obj):
         return obj.created
-    
-    def get_creator(self, obj):
-        user = User.objects.get(id=obj.creator)  # Fetch the User object using the creator_id
-        return UserListSerializer(user).data
 
 class ImageAnnotationSerializer(serializers.ModelSerializer):
     creator = UserListSerializer()
