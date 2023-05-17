@@ -13,6 +13,11 @@ SPACE_REQUEST_STATUS =(
     ("Declined", "Declined")
 )
 
+LABEL_TYPE =(
+    ("Semantic", "Semantic"),
+    ("Non-Semantic", "Non-Semantic")
+)
+
 class Space(models.Model):
     title = models.CharField(
         max_length=300, blank=False, null=False, unique=False, default=""
@@ -83,7 +88,11 @@ class Label(models.Model):
     name = models.CharField(
         max_length=300, blank=False, null=False, unique=False, default=""
     )
-
+    description = models.CharField(max_length=300, blank=True, null=True, unique=False, default="")
+    label_type = models.CharField(
+        max_length=300, blank=False, null=False, unique=False, choices = LABEL_TYPE , default="Non-Semantic")
+    qid = models.CharField(
+        max_length=300, blank=False, null=False, unique=False, default="")
     def __str__(self):
         return self.name
 
@@ -158,4 +167,10 @@ class ImageAnnotation(models.Model):
     image = models.TextField(blank=False, null=False)
 
 
-
+class Report(models.Model):
+    post = models.ForeignKey(Post, related_name='post_report', null=True, blank=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, blank=False, null=True, on_delete=models.CASCADE, related_name="reporter")
+    created_time = models.DateTimeField(auto_now_add=True)
+    description = models.CharField(
+        max_length=300, blank=True, null=True, unique=False, default=""
+    )

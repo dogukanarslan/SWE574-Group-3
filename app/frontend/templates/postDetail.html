@@ -31,7 +31,10 @@
         <div class="d-flex mt-2">
           {% if is_post_owner %}
           <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/edit_form/" class="btn btn-sm btn-outline-dark">Edit</a>
+          {% if is_delete_allowed %}
           <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/delete/" class="btn btn-sm btn-outline-danger ms-2">Delete</a>
+          {% endif %}
+
           {% else %}
           {% if post in user_liked_posts %}
           <a class="btn btn-sm btn-outline-dark" href='{{DOMAIN_URL}}/feed/post/{{post.id}}/undo_like_post/'>Undo

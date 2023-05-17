@@ -46,9 +46,58 @@
                     {% if user_data.id is space.owner.id or user_data in space.moderator %}
                     <a href="{{DOMAIN_URL}}/feed/space/{{space.id}}/delete_post_from_space/?value={{ post.id }}" class="btn btn-sm btn-outline-dark ms-2">Delete Post From Space</a>
                     {% endif %}
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" data-bs-toggle="modal"
+                        data-bs-target="#reportModal">Report</button>
+                    <div class="modal fade" id="reportModal" role="dialog">
+                        <div class="modal-dialog">
 
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Report</h4>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <form>
+                                        <div class="mb-3">
+                                          <label for="report_message" class="form-label">Description</label>
+                                          <input id="report_message" class="form-control" type="text" name="report_message" placeholder="Description" />
+                                        </div>
+                                      </form>
+
+                                </div>
+                                <div class="modal-footer">
+                                    <a href="#" id="submit-report" class="btn btn-dark">Submit</a>
+                                    <button type="button" class="btn btn-sm btn-outline-dark ms-2" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Get references to the form and the submit button
+    const form = document.querySelector('form');
+    const submitButton = document.querySelector('#submit-report');
+  
+    // Add a click event listener to the submit button
+    submitButton.addEventListener('click', event => {
+      // Prevent the default form submission behavior
+      event.preventDefault();
+  
+      // Get the input value
+      const reportMessage = document.querySelector('#report_message').value;
+  
+      // Generate the URL with the input value
+      const url = `{{DOMAIN_URL}}/feed/post/{{post.id}}/report/?value=${reportMessage}`;
+  
+      // Navigate to the URL
+      window.location.href = url;
+    });
+  </script>

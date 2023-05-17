@@ -118,5 +118,13 @@ class ImageAnnotationSerializer(serializers.ModelSerializer):
         return obj.created_time
 
 
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = "__all__"
 
-
+class ReportListSerializer(serializers.ModelSerializer):
+    user = UserListSerializer()
+    class Meta:
+        model = Comment
+        fields = "__all__"
