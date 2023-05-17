@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<form id="main"  method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/post/">
+<form id="main" class="border border-2 rounded-3 p-4" method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/post/">
   {% csrf_token %}
   <h3>Create a Post</h3>
 
@@ -54,6 +54,7 @@
 
   <button class="btn btn-dark">Submit</button>
 
+
   <div class="modal fade" id="confirmationModal" role="dialog">
     <div class="modal-dialog">
 
@@ -80,7 +81,7 @@
     </div>
   </div>
 </form>
-
+<p></p>
 <div class="modal fade" id="labelModal" role="dialog">
   <div class="modal-dialog">
 
