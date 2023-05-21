@@ -107,6 +107,11 @@ class TextAnnotationSerializer(serializers.ModelSerializer):
     def convert_date(self, obj):
         return obj.created
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['@context'] = representation.pop('context')
+        return representation
+
 class ImageAnnotationSerializer(serializers.ModelSerializer):
     creator = UserListSerializer()
     created = serializers.SerializerMethodField('convert_date')
