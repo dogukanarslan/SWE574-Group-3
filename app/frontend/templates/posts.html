@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/post/">
+<form id="main" class="border border-2 rounded-3 p-4" method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/post/">
   {% csrf_token %}
   <h3>Create a Post</h3>
 
@@ -33,10 +33,27 @@
     <input type="file" class="form-control" id="image" name="image" placeholder="Choose a File">
   </div>
 
-  <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#labelModal">Add
+  <div class="mb-3">
+    <style type="text/css">
+      .bootstrap-tagsinput .tag {
+        margin-right: 2px;
+        color: white !important;
+        background-color: #0d6efd;
+        padding: 0.2rem;
+      }
+    </style>
+      <div class="input-group mb-3">
+        <input type="text" name="selected_non_semantic_tags" class="form-control p-4" data-role="tagsinput"/>
+      </div>
+  </div>
+
+
+  <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#labelModal">Add Semantic
     Label</button>
+  <input type="hidden" id="selected-semantic-tags" name="selected_semantic_tags" value="{{selected_semantic_tags}}">
 
   <button class="btn btn-dark">Submit</button>
+
 
   <div class="modal fade" id="confirmationModal" role="dialog">
     <div class="modal-dialog">
@@ -56,6 +73,7 @@
           <input type="hidden" name="is_confirmed" value="True">
           {% endif %}
           <button class="btn btn-outline-dark" data-bs-dismiss="modal">Yes</button>
+
           <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">No</button>
         </div>
       </div>
@@ -63,7 +81,7 @@
     </div>
   </div>
 </form>
-
+<p></p>
 <div class="modal fade" id="labelModal" role="dialog">
   <div class="modal-dialog">
 
@@ -74,14 +92,17 @@
       </div>
 
       <div class="modal-body">
-        {% for label in labels %}
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="label" name="label" value="{{label.id}}">
-          <label class="form-check-label" for="label">
-            {{label}}
-          </label>
-        </div>
-        {% endfor %}
+        <form id="data-form" method="get" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/wikidata-search/"> 
+          <div class="mb-3">
+            <label for="search_keyword" class="form-label">Tag</label>
+            <input id="search_keyword" class="form-control" type="text" name="search_keyword" placeholder="add tag"
+              required />
+            </div>
+            <button class="btn btn-outline-dark" >Search Label</button>
+        </form>
+        <ul class="list-group semantic-tags mt-3" id="tag-list"></ul>
+        <input type="hidden" id="selected-semantic-tags" name="selected_semantic_tags">
+
       </div>
 
       <div class="modal-footer">
@@ -91,6 +112,7 @@
 
   </div>
 </div>
+
 <h3>Recent Posts</h3>
 
 {% for post in posts %}
@@ -98,12 +120,99 @@
 {% endfor %}
 
 <script>
+  const wikidataSearchForm = document.getElementById('data-form')
+  const tagList = document.getElementById('tag-list')
+  const label = document.getElementById('search_keyword')
+  
   const confirmationModal = new bootstrap.Modal('#confirmationModal')
   const isConfirmed = '{{confirmation_modal}}'
 
   if (isConfirmed) {
     confirmationModal.show();
   }
+  wikidataSearchForm.addEventListener("submit", (e) => {
+    e.preventDefault()
+    fetch(`/feed/wikidata-search/?label=${label.value}`)
+    .then(response => response.json())
+    .then(data => {
+      tagList.innerHTML = ""
+      data.forEach(element => {
+        const el = document.createElement('li')
+        el.classList = 'list-group-item cursor-pointer'
+        titleEl=document.createElement('h6')
+        titleEl.innerHTML=element.label || "-"
+
+        descriptionEl=document.createElement('p')
+        descriptionEl.innerHTML=element.description || "-"
+
+        qidEl=document.createElement('span')
+        qidEl.innerHTML=element.id || "-"
+
+        el.appendChild(titleEl)
+        el.appendChild(descriptionEl)
+        el.appendChild(qidEl)
+
+        el.addEventListener("click", (e) => {
+          console.log("taglist",element.label)
+          el.classList.toggle('active');
+          updateSelectedTags();
+        });
+        tagList.appendChild(el)
+      })
+    })
+  });
+
+  function updateSelectedTags() {
+    const selectedTags = [];
+    const selectedElements = document.querySelectorAll('#tag-list li.active');
+    selectedElements.forEach(element => {
+      console.log("selected el",element)
+      const tagContent = [];
+      tagContent.push(element.querySelector('h6').textContent)
+      tagContent.push(element.querySelector('p').textContent)
+      tagContent.push(element.querySelector('span').textContent)
+      selectedTags.push(tagContent.join('|'));
+
+    });
+    console.log("selectedTags",selectedTags)
+    document.getElementById('selected-semantic-tags').value = selectedTags.join('"item:');
+    console.log(document.getElementById('selected-semantic-tags').value)
+  }
+
+</script>
+
+
+<script
+src="https://code.jquery.com/jquery-3.6.0.min.js"
+integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+crossorigin="anonymous"
+></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
+<script>
+$(function () {
+  $('input')
+    .on('change', function (event) {
+      var $element = $(event.target);
+      var $container = $element.closest('.example');
+
+      if (!$element.data('tagsinput')) return;
+
+      var val = $element.val();
+      if (val === null) val = 'null';
+      var items = $element.tagsinput('items');
+
+      $('code', $('pre.val', $container)).html(
+        $.isArray(val)
+          ? JSON.stringify(val)
+          : '"' + val.replace('"', '\\"') + '"'
+      );
+      $('code', $('pre.items', $container)).html(
+        JSON.stringify($element.tagsinput('items'))
+      );
+    })
+    .trigger('change');
+});
 </script>
 
 {% endblock %}

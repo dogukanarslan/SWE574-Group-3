@@ -34,3 +34,13 @@
   width: 100%;
   resize: none;
 }
+
+.semantic-tags {
+  height: 400px;
+  overflow-y: auto;
+}
+
+.cursor-pointer {
+  cursor:pointer;
+}
+

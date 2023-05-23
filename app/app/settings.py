@@ -14,8 +14,8 @@ import os
 import datetime
 from rest_framework import permissions
 
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 
 def get_env_variable(name):
@@ -104,9 +104,18 @@ DATABASES = {
         "NAME": get_env_variable("DB_NAME"),
         "USER": get_env_variable("DB_USER"),
         "PASSWORD": get_env_variable("DB_PASS"),
+    },
+    "annotation_db": {
+        "ENGINE": "django.db.backends.postgresql",
+        "HOST": get_env_variable("DB_HOST"),
+        "NAME": get_env_variable("DB_NAME"),
+        "USER": get_env_variable("DB_USER"),
+        "PASSWORD": get_env_variable("DB_PASS"),
+        "PORT": os.environ.get("ANNOTATION_DB_PORT", 5432),
     }
 }
 
+DATABASE_ROUTERS = ["feed.routers.AnnotationRouter"]
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators

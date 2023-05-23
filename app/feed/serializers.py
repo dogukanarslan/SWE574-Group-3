@@ -97,22 +97,39 @@ class SpaceListSerializer(serializers.ModelSerializer):
         model = Space
         fields = "__all__"
 
-
 class TextAnnotationSerializer(serializers.ModelSerializer):
-    created_by = UserListSerializer()
-    created_time = serializers.SerializerMethodField('convert_date')
+    created = serializers.SerializerMethodField('convert_date')
 
     class Meta:
-        model = textAnnotation
-        fields = ('id', 'source', 'type', 'body_description', 'created_by', 'created_time', 'selector_type', 'start', 'end')
-    def convert_date(self, obj):
-        return obj.created_time
+        model = TextAnnotation
+        fields = ('id', 'context', 'type', 'created', 'body', 'target')
 
+    def convert_date(self, obj):
+        return obj.created
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['@context'] = representation.pop('context')
+        return representation
 
 class ImageAnnotationSerializer(serializers.ModelSerializer):
+    creator = UserListSerializer()
+    created = serializers.SerializerMethodField('convert_date')
     class Meta:
         model = ImageAnnotation
-        fields = ('id', 'source', 'type', 'body_description', 'created_by', 'created_time', 'location')
+        fields = ('id', 'source', 'type', 'body_description', 'creator', 'created', 'image')
     
     def convert_date(self, obj):
         return obj.created_time
+
+
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = "__all__"
+
+class ReportListSerializer(serializers.ModelSerializer):
+    user = UserListSerializer()
+    class Meta:
+        model = Comment
+        fields = "__all__"

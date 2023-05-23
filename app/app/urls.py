@@ -23,6 +23,7 @@ from django.conf.urls.static import static
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+#from feed.views import wikidata_search
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -51,5 +52,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("user.urls")),
     path("feed/", include("feed.urls")),
+    #path("wikidata_suggestion/", wikidata_search, name="wikidata_search"),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

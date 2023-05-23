@@ -22,12 +22,30 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import textAnnotation, Post
 from django_filters.rest_framework import DjangoFilterBackend
+import uuid
+import re
+import random
 
+import requests
+from django.http import JsonResponse
 
 # Create your views here.
 
+class WikidataViewSet(viewsets.ViewSet):
+    def list(self, request):
+        label = request.GET.get("label")
+        if label:
+            url = f"https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&type=item&search={label}"
+            response = requests.get(url)
+            if response.ok:
+                data = response.json()
+                suggestions = []                
+                for result in data["search"]:
+                    suggestions.append(result)
+                    print(result)
+                return JsonResponse(suggestions, safe=False)
+        return JsonResponse([], safe=False)
 
 class SpaceViewSet(viewsets.ModelViewSet):
     serializer_class = SpaceCreateSerializer
@@ -494,6 +512,23 @@ class LabelViewSet(viewsets.ModelViewSet):
     serializer_class = LabelSerializer
     queryset = Label.objects.all()
 
+    def create(self, request, *args, **kwargs):
+        name = request.data.get('name')
+        if not name:
+            return Response({'name': 'This field is required.'}, status=400)
+
+        # check if name is a valid Wikidata query ID
+        if re.match(r'^Q\d+$', name):
+            label = Label.objects.create(name=name)
+            serializer = LabelSerializer(label)
+            return Response(serializer.data, status=201)
+        else:
+            # generate random QID
+            qid = '{}'.format(random.randint(1, 1000000000))
+            label = Label.objects.create(name=name, qid=qid)
+            serializer = LabelSerializer(label)
+            return Response(serializer.data, status=201)
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
@@ -514,7 +549,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         request.data._mutable = True
-
+        print(request.data)
         post_link = request.data.get("post_link")
         existing_post = Post.objects.filter(post_link=post_link).first()
         is_confirmed = request.data.get("is_confirmed")
@@ -522,7 +557,6 @@ class PostViewSet(viewsets.ModelViewSet):
         request.data["owner"] = user.id
         user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
         user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data     
-
         if existing_post and not is_confirmed:
             data = Post.objects.all().order_by("-id")
             posts = PostListSerializer(data, many=True).data
@@ -539,17 +573,48 @@ class PostViewSet(viewsets.ModelViewSet):
                     "description": request.data.get("description"),
                     "platform": request.data.get("platform"),
                     "post_link": request.data.get("post_link"),
+                    "selected_semantic_tags": request.data.get("selected_semantic_tags"),
+                    "selected_non_semantic_tags": request.data.get("selected_non_semantic_tags"),
                     "confirmation_modal": True
                 },
             )
-
-        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         data = Post.objects.all().order_by("-id")
         posts = PostListSerializer(data, many=True).data
         headers = self.get_success_headers(serializer.data)
+        created_post_obj = Post.objects.get(id=serializer.data["id"])
+        if request.data.get("selected_semantic_tags") is not None and request.data.get("selected_semantic_tags")!='':
+            labels=request.data.get("selected_semantic_tags").split("item:")
+            print(labels)
+            for label in labels:
+                if label is not None and label!="":
+                    information = label.split("|")
+                    name=information[0]
+                    description=information[1]
+                    qid=information[2]
+                    print(name,description)
+                    try:
+                        label = Label.objects.get(name=name,description=description,label_type="Semantic",qid=qid)
+                        print("try",label)
+                    except:
+                        label=Label.objects.create(name=name,description=description,label_type="Semantic",qid=qid)
+                        print("except",label)
+                    created_post_obj.label.add(label.id)
+                    print("created_post_obj",created_post_obj.label.all())
+
+        if request.data.get("selected_non_semantic_tags") is not None and request.data.get("selected_non_semantic_tags")!='':
+            labels=request.data.get("selected_non_semantic_tags").split(",")
+            for label in labels:
+                if label is not None and label!="":
+                    name=label
+                    qid=str(uuid.uuid4())
+                    try:
+                        label = Label.objects.get(name=name,label_type="Non-Semantic",qid=qid)
+                    except:
+                        label=Label.objects.create(name=name,label_type="Non-Semantic",qid=qid)
+                    created_post_obj.label.add(label.id)
         # return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         return render(
             request,
@@ -634,25 +699,39 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.bookmarked_by.add(user)
         post.save()
+        labels=Label.objects.all()
         data = Post.objects.all().order_by("-id")
         posts = PostListSerializer(data, many=True).data
-        space_obj = Space.objects.get(id=post.space.id)
-        space = SpaceListSerializer(space_obj).data
         user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
         user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
-        # return Response({"detail":"Liked succesfully"},status=200)
-        return render(
-            request,
-            "spacePosts.html",
-            {
-                "space":space,
-                "posts": posts,
-                "user_liked_posts":user_liked_posts,
-                "user_bookmarked_posts":user_bookmarked_posts,
-                "owner": user.first_name + " " + user.last_name,
-                "DOMAIN_URL": DOMAIN_URL,
-            },
-        )
+        if post.space:
+            space_obj = Space.objects.get(id=post.space.id)
+            space = SpaceListSerializer(space_obj).data
+            return render(
+                request,
+                "spacePosts.html",
+                {
+                    "space":space,
+                    "posts": posts,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+        else:
+            return render(
+                request,
+                "posts.html",
+                {
+                    "posts": posts,
+                    "labels": labels,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
 
     @action(detail=True, methods=["get"], name="Like Post")
     def undo_bookmark_post(self, request, pk=None):
@@ -823,9 +902,14 @@ class PostViewSet(viewsets.ModelViewSet):
         print(post_obj)
         post = PostListSerializer(post_obj).data
         comments = Comment.objects.filter(post=post_obj.id)
-        annotations = textAnnotation.objects.filter(source=post_obj.id)
+        annotations = TextAnnotation.objects.filter(id=post_obj.id)
         comments_data = CommentListSerializer(comments,many=True).data
         annotations_data = TextAnnotationSerializer(annotations, many=True).data
+
+        comments_of_posts = Comment.objects.filter(post=post_obj.id).first()
+        is_delete_allowed=False
+        if not comments_of_posts:
+            is_delete_allowed=True
         if request.user.is_anonymous == False:
             user = request.user
             user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
@@ -834,6 +918,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 request,
                 "postDetail.html",
                 {
+                    "is_delete_allowed":is_delete_allowed,
                     "is_post_owner": user.id ==post_obj.owner.id,
                     "post": post,
                     "comments": comments_data,
@@ -865,25 +950,81 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         user = request.user
         if user.id == post.owner.id:
-            space_id = post.space.id
             post_id = post.id
             post.delete()
-        space = SpaceListSerializer(Space.objects.get(id=post.space.id)).data
-        data = PostListSerializer(Post.objects.filter(space=space_id),many=True).data
+        labels=Label.objects.all()
+        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
+        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
+        posts = PostListSerializer(Post.objects.all().order_by("created_time"),many=True).data
+        if post.space:
+            space = SpaceListSerializer(Space.objects.get(id=post.space.id)).data
+            data = PostListSerializer(Post.objects.filter(space=space["id"]),many=True).data
+            return render(
+                request,
+                "spacePosts.html",
+                {
+                    "space":space,
+                    "posts": data,
+                    "labels":labels,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+        else:
+            return render(
+                request,
+                "posts.html",
+                {
+                    "posts": posts,
+                    "labels": labels,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+    @action(detail=True, methods=["get"], name="Like Post")
+    def report(self, request, pk=None):
+        post = self.get_object()
+        user = request.user
+        description = request.GET.get("value")
+        print(description)
+        user_obj = User.objects.get(id=user.id)
+        report_obj = Report.objects.create(user=user_obj,post=post,description=description)
         user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
         user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data 
-        return render(
-            request,
-            "spacePosts.html",
-            {
-                "space":space,
-                "posts": data,
-                "user_liked_posts":user_liked_posts,
-                "user_bookmarked_posts":user_bookmarked_posts,
-                "owner": user.first_name + " " + user.last_name,
-                "DOMAIN_URL": DOMAIN_URL,
-            },
-        )
+        if post.space:
+            space = SpaceListSerializer(Space.objects.get(id=post.space.id)).data
+            data = PostListSerializer(Post.objects.filter(space=space["id"]),many=True).data
+            return render(
+                request,
+                "spacePosts.html",
+                {
+                    "space":space,
+                    "posts": data,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
+        else:
+            posts=PostListSerializer(Post.objects.all(),many=True).data
+            labels=Label.objects.all()
+            return render(
+                request,
+                "posts.html",
+                {
+                    "posts": posts,
+                    "user_liked_posts":user_liked_posts,
+                    "user_bookmarked_posts":user_bookmarked_posts,
+                    "labels": labels,
+                    "owner": user.first_name + " " + user.last_name,
+                    "DOMAIN_URL": DOMAIN_URL,
+                },
+            )
     @action(detail=True, methods=["get"], name="Like Post")
     def edit_form(self, request, pk=None):
         post_obj = self.get_object()
@@ -1014,30 +1155,24 @@ class PostViewSet(viewsets.ModelViewSet):
 
 class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
     serializer_class = TextAnnotationSerializer
-    
+
     def get_queryset(self):
-        source = self.request.query_params.get('source')
+        source = self.request.query_params.get("source")
+
+        filters = {}
         if source:
-            queryset = textAnnotation.objects.filter(source=source)
-        else:
-            queryset = textAnnotation.objects.all()
+            filters["target__source"] = DOMAIN_URL + '/' + source + '/'
+
+        queryset = TextAnnotation.objects.filter(**filters)
         return queryset
-    
+
     def create(self, request, *args, **kwargs, ):
-        user = request.user
-        source = request.data.get("source")
-        post = Post.objects.get(id=source)
-        start = request.data.get("start")
-        body_description = request.data.get("body_description")
-        end = request.data.get("end")
-        type = request.data.get("type")
-        selector_type = request.data.get("selector_type")
-        user_obj = User.objects.get(id=user.id)
+        body = request.data.get("body")
+        target=request.data.get("target")
 
-        textAnnotation.objects.create(source=post,start=start, end=end, type=type, selector_type=selector_type, created_by=user_obj, body_description=body_description)
-        
-        return redirect("/feed/post/" + str(source) + '/')
+        TextAnnotation.objects.create(body=body, target=target)
 
+        return Response("Annotation saved", status=201)
 
 class CreateImagennotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
     serializer_class = ImageAnnotationSerializer
@@ -1049,19 +1184,17 @@ class CreateImagennotationView(viewsets.ModelViewSet,generics.CreateAPIView,gene
         else:
             queryset = ImageAnnotation.objects.all()
         return queryset
-    
 
     def create(self, request, *args, **kwargs, ):
         user = request.user
         source = request.data.get("source")
         post = Post.objects.get(id=source)
-        start = request.data.get("start")
         body_description = request.data.get("body_description")
-        end = request.data.get("end")
+        image=request.data.get("image")
         type = request.data.get("type")
-        selector_type = request.data.get("selector_type")
         user_obj = User.objects.get(id=user.id)
 
-        textAnnotation.objects.create(source=post,start=start, end=end, type=type, selector_type=selector_type, created_by=user_obj, body_description=body_description)
+        ImageAnnotation.objects.create(source=post,image=image, type=type, creator=user_obj, body_description=body_description)
         
         return redirect("/feed/post/" + str(source) + '/')
+    
