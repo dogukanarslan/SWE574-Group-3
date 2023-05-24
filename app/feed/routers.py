@@ -1,13 +1,13 @@
-from .models import TextAnnotation
+from .models import Annotation
 
 class AnnotationRouter:
     def db_for_read(self, model, **hints):
-        if model == TextAnnotation:
+        if model == Annotation:
             return "annotation_db"
         return None
 
     def db_for_write(self, model, **hints):
-        if model == TextAnnotation:
+        if model == Annotation:
             return "annotation_db"
         return None
 
@@ -16,5 +16,5 @@ class AnnotationRouter:
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         if db == "annotation_db":
-            return model_name == "TextAnnotation"
+            return model_name == "Annotation"
         return None
