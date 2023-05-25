@@ -150,21 +150,12 @@ class Comment(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
 
 
-class TextAnnotation(models.Model):
+class Annotation(models.Model):
     context = models.CharField(max_length=255, default="http://www.w3.org/ns/anno.jsonld")
     type = models.CharField(max_length=255, default="Annotation")
     target = JSONField(blank=True, null=True)
     body = models.JSONField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
-
-        
-class ImageAnnotation(models.Model):
-    source = models.ForeignKey(Post, related_name='image_annotation', null=False, blank=False, on_delete=models.CASCADE)
-    type = models.TextField(blank=False, null=False)
-    body_description = models.TextField(blank=False, null=False, unique=False)
-    creator = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="image_annotation_created_by")
-    created = models.DateTimeField(auto_now_add=True)
-    image = models.TextField(blank=False, null=False)
 
 
 class Report(models.Model):
