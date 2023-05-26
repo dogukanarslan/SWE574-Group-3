@@ -22,7 +22,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import textAnnotation, Post
 from django_filters.rest_framework import DjangoFilterBackend
 import uuid
 import re
@@ -903,15 +902,13 @@ class PostViewSet(viewsets.ModelViewSet):
         print(post_obj)
         post = PostListSerializer(post_obj).data
         comments = Comment.objects.filter(post=post_obj.id)
-        annotations = textAnnotation.objects.filter(source=post_obj.id)
+        annotations = Annotation.objects.filter(id=post_obj.id)
         comments_data = CommentListSerializer(comments,many=True).data
-        annotations_data = TextAnnotationSerializer(annotations, many=True).data
+        annotations_data = AnnotationSerializer(annotations, many=True).data
 
         comments_of_posts = Comment.objects.filter(post=post_obj.id).first()
-        text_annotations_of_posts = textAnnotation.objects.filter(source=post_obj.id).first()
-        image_annotations_of_posts = ImageAnnotation.objects.filter(source=post_obj.id).first()
         is_delete_allowed=False
-        if not comments_of_posts and not text_annotations_of_posts and not image_annotations_of_posts:
+        if not comments_of_posts:
             is_delete_allowed=True
         if request.user.is_anonymous == False:
             user = request.user
@@ -1156,56 +1153,32 @@ class PostViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
-    serializer_class = TextAnnotationSerializer
-    
+class AnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
+    serializer_class = AnnotationSerializer
+
     def get_queryset(self):
-        source = self.request.query_params.get('source')
+        source = self.request.query_params.get("source")
+        image_annotation = self.request.query_params.get("image")
+        text_annotation = self.request.query_params.get("text")
+
+        filters = {}
         if source:
-            queryset = textAnnotation.objects.filter(source=source)
-        else:
-            queryset = textAnnotation.objects.all()
+            filters["target__source"] = DOMAIN_URL + '/' + source + '/'
+
+        if image_annotation:
+            filters["target__type"] = "Image"
+
+        if text_annotation:
+            filters["target__selector__type"] = "TextPositionSelector"
+
+        queryset = Annotation.objects.filter(**filters)
         return queryset
-    
-    def create(self, request, *args, **kwargs, ):
-        user = request.user
-        source = request.data.get("source")
-        post = Post.objects.get(id=source)
-        start = request.data.get("start")
-        body_description = request.data.get("body_description")
-        end = request.data.get("end")
-        type = request.data.get("type")
-        selector_type = request.data.get("selector_type")
-        user_obj = User.objects.get(id=user.id)
 
-        textAnnotation.objects.create(source=post,start=start, end=end, type=type, selector_type=selector_type, created_by=user_obj, body_description=body_description)
-        
-        return redirect("/feed/post/" + str(source) + '/')
-
-
-class CreateImagennotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
-    serializer_class = ImageAnnotationSerializer
-    
-    def get_queryset(self):
-        source = self.request.query_params.get('source')
-        if source:
-            queryset = ImageAnnotation.objects.filter(source=source)
-        else:
-            queryset = ImageAnnotation.objects.all()
-        return queryset
-    
 
     def create(self, request, *args, **kwargs, ):
-        user = request.user
-        source = request.data.get("source")
-        post = Post.objects.get(id=source)
-        start = request.data.get("start")
-        body_description = request.data.get("body_description")
-        end = request.data.get("end")
-        type = request.data.get("type")
-        selector_type = request.data.get("selector_type")
-        user_obj = User.objects.get(id=user.id)
+        body = request.data.get("body")
+        target=request.data.get("target")
 
-        textAnnotation.objects.create(source=post,start=start, end=end, type=type, selector_type=selector_type, created_by=user_obj, body_description=body_description)
-        
-        return redirect("/feed/post/" + str(source) + '/')
+        Annotation.objects.create(body=body, target=target)
+
+        return Response("Annotation saved", status=201)

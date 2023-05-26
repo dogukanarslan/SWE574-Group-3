@@ -36,36 +36,42 @@ class UserViewSet(viewsets.ModelViewSet):
             args = {}
             args["error"] = "First Name can not be empty."
             args["DOMAIN_URL"] = DOMAIN_URL
+            args["UNPROTECTED_ROUTE"]= True
             return render(request, "error.html", args)
 
         if last_name is None or last_name == "":
             args = {}
             args["error"] = "Last Name can not be empty."
             args["DOMAIN_URL"] = DOMAIN_URL
+            args["UNPROTECTED_ROUTE"]= True
             return render(request, "error.html", args)
 
         if email is None or email == "":
             args = {}
             args["error"] = "Email can not be empty."
             args["DOMAIN_URL"] = DOMAIN_URL
+            args["UNPROTECTED_ROUTE"]= True
             return render(request, "error.html", args)
 
         if password is None or password == "":
             args = {}
             args["error"] = "Password can not be empty."
             args["DOMAIN_URL"] = DOMAIN_URL
+            args["UNPROTECTED_ROUTE"]= True
             return render(request, "error.html", args)
 
         if password2 is None or password2 == "":
             args = {}
             args["error"] = "Password Confimation can not be empty."
             args["DOMAIN_URL"] = DOMAIN_URL
+            args["UNPROTECTED_ROUTE"]= True
             return render(request, "error.html", args)
 
         if re.fullmatch(EMAIL_FORMAT_REGEX, email) is None:
             args = {}
             args["error"] = "Email format is invalid."
             args["DOMAIN_URL"] = DOMAIN_URL
+            args["UNPROTECTED_ROUTE"]= True
             return render(request, "error.html", args)
 
         user_exist = User.objects.filter(email=email).first()
@@ -73,6 +79,7 @@ class UserViewSet(viewsets.ModelViewSet):
             args = {}
             args["error"] = "There is already an account with this email."
             args["DOMAIN_URL"] = DOMAIN_URL
+            args["UNPROTECTED_ROUTE"]= True
             return render(request, "error.html", args)
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -83,11 +90,11 @@ class UserViewSet(viewsets.ModelViewSet):
             args = {}
             args["error"] = "Passwords are not matched."
             args["DOMAIN_URL"] = DOMAIN_URL
+            args["UNPROTECTED_ROUTE"]= True
             return render(request, "error.html", args)
 
     @action(detail=False, methods=["GET"])
     def register_form(self, request, *args, **kwargs):
-        print(request.user)
         return render(request, "register.html", {"DOMAIN_URL": DOMAIN_URL, "UNPROTECTED_ROUTE": True})
 
     @action(detail=False, methods=["GET"])
@@ -102,6 +109,7 @@ class UserViewSet(viewsets.ModelViewSet):
             args = {}
             args["error"] = "There is no account with this email."
             args["DOMAIN_URL"] = DOMAIN_URL
+            args["UNPROTECTED_ROUTE"]= True
             return render(request, "error.html", args)
 
         serializer = UserLoginSerializer(data=data)

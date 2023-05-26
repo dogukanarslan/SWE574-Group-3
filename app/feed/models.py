@@ -1,6 +1,9 @@
 from django.db import models
 from user.models import User
 from django.urls import reverse
+from django.contrib.postgres.fields import ArrayField
+from django.db.models import JSONField
+
 
 # Create your models here.
 
@@ -141,30 +144,18 @@ class Post(models.Model):
 
 
 class Comment(models.Model):
-
     post = models.ForeignKey(Post, related_name='post_review', null=True, blank=True, on_delete=models.CASCADE)
     user = models.ForeignKey(User, blank=False, null=True, on_delete=models.CASCADE, related_name="reviewer")
     comment = models.CharField( max_length=1000, blank=True, null=True)
     created_time = models.DateTimeField(auto_now_add=True)
 
 
-class textAnnotation(models.Model):
-    source = models.ForeignKey(Post, related_name='text_annotation', null=False, blank=False, on_delete=models.CASCADE)
-    type = models.TextField(blank=False, null=False)
-    body_description = models.TextField(blank=False, null=False, unique=False)
-    created_by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="text_annotation_created_by")
-    created_time = models.DateTimeField(auto_now_add=True)
-    selector_type = models.IntegerField(blank=False, null=False)
-    start = models.IntegerField(blank=False, null=False)
-    end = models.IntegerField(blank=False, null=False)
-
-class ImageAnnotation(models.Model):
-    source = models.ForeignKey(Post, related_name='image_annotation', null=False, blank=False, on_delete=models.CASCADE)
-    type = models.TextField(blank=False, null=False)
-    body_description = models.TextField(blank=False, null=False, unique=False)
-    created_by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE, related_name="image_annotation_created_by")
-    created_time = models.DateTimeField(auto_now_add=True)
-    location = models.TextField(blank=False, null=False)
+class Annotation(models.Model):
+    context = models.CharField(max_length=255, default="http://www.w3.org/ns/anno.jsonld")
+    type = models.CharField(max_length=255, default="Annotation")
+    target = JSONField(blank=True, null=True)
+    body = models.JSONField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
 
 
 class Report(models.Model):
