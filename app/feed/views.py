@@ -902,9 +902,9 @@ class PostViewSet(viewsets.ModelViewSet):
         print(post_obj)
         post = PostListSerializer(post_obj).data
         comments = Comment.objects.filter(post=post_obj.id)
-        annotations = TextAnnotation.objects.filter(id=post_obj.id)
+        annotations = Annotation.objects.filter(id=post_obj.id)
         comments_data = CommentListSerializer(comments,many=True).data
-        annotations_data = TextAnnotationSerializer(annotations, many=True).data
+        annotations_data = AnnotationSerializer(annotations, many=True).data
 
         comments_of_posts = Comment.objects.filter(post=post_obj.id).first()
         is_delete_allowed=False
@@ -1153,48 +1153,32 @@ class PostViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-class CreateTextAnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
-    serializer_class = TextAnnotationSerializer
+class AnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
+    serializer_class = AnnotationSerializer
 
     def get_queryset(self):
         source = self.request.query_params.get("source")
+        image_annotation = self.request.query_params.get("image")
+        text_annotation = self.request.query_params.get("text")
 
         filters = {}
         if source:
             filters["target__source"] = DOMAIN_URL + '/' + source + '/'
 
-        queryset = TextAnnotation.objects.filter(**filters)
+        if image_annotation:
+            filters["target__type"] = "Image"
+
+        if text_annotation:
+            filters["target__selector__type"] = "TextPositionSelector"
+
+        queryset = Annotation.objects.filter(**filters)
         return queryset
+
 
     def create(self, request, *args, **kwargs, ):
         body = request.data.get("body")
         target=request.data.get("target")
 
-        TextAnnotation.objects.create(body=body, target=target)
+        Annotation.objects.create(body=body, target=target)
 
         return Response("Annotation saved", status=201)
-
-class CreateImagennotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListAPIView):
-    serializer_class = ImageAnnotationSerializer
-    
-    def get_queryset(self):
-        source = self.request.query_params.get('source')
-        if source:
-            queryset = ImageAnnotation.objects.filter(source=source)
-        else:
-            queryset = ImageAnnotation.objects.all()
-        return queryset
-
-    def create(self, request, *args, **kwargs, ):
-        user = request.user
-        source = request.data.get("source")
-        post = Post.objects.get(id=source)
-        body_description = request.data.get("body_description")
-        image=request.data.get("image")
-        type = request.data.get("type")
-        user_obj = User.objects.get(id=user.id)
-
-        ImageAnnotation.objects.create(source=post,image=image, type=type, creator=user_obj, body_description=body_description)
-        
-        return redirect("/feed/post/" + str(source) + '/')
-    
