@@ -104,10 +104,19 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["POST"])
     def login(self, request):
         data = request.data
+        
         user = User.objects.filter(email=request.data.get("email")).first()
         if not user:
             args = {}
             args["error"] = "There is no account with this email."
+            args["DOMAIN_URL"] = DOMAIN_URL
+            args["UNPROTECTED_ROUTE"]= True
+            return render(request, "error.html", args)
+
+        password = data.get("password")
+        if not user.check_password(password):
+            args = {}
+            args["error"] = "Incorrect password"
             args["DOMAIN_URL"] = DOMAIN_URL
             args["UNPROTECTED_ROUTE"]= True
             return render(request, "error.html", args)

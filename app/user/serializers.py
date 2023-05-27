@@ -123,16 +123,13 @@ class UserLoginSerializer(ModelSerializer):
         extra_kwargs = {"password": {"write_only": True, "required": False}}
 
     def validate(self, data):
-        password = data.get("password")
         email = data.get("email")
         user = User.objects.filter(email=email).distinct()
         if user.exists():
             user_obj = user.first()
         else:
             raise ValidationError("Incorrect credential")
-        if user_obj:
-            if not user_obj.check_password(password):
-                raise ValidationError({"detail": "Incorrect credential"})
+
         payload = JWT_PAYLOAD_HANDLER(user_obj)
         token = JWT_ENCODE_HANDLER(payload)
         data["token"] = token
