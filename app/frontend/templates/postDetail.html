@@ -185,6 +185,7 @@
     const response = await (await fetch('/feed/annotation/?source={{post.id}}&image=true')).json()
 
     const imageAnnotations = response.results.filter(result => result.target.type === 'Image')
+    imageAnnotationList.innerHTML = '';
     imageAnnotations.forEach(annotation => {
       const liElement = document.createElement('li');
       liElement.textContent = annotation.body.value;
