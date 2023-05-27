@@ -14,9 +14,12 @@ router.register("annotation", views.AnnotationView, basename="annotation")
 router.register("wikidata-search", views.WikidataViewSet, basename="wikidata-view")
 
 
+
+
 app_name = "meal"
 
 urlpatterns = [
-    path("", include(router.urls))
+    path('explore/', views.explore, name='explore'),
+    path("", include(router.urls)),
 ]
 

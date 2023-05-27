@@ -13,6 +13,12 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 import datetime
 from rest_framework import permissions
+import django
+from django.utils.encoding import smart_str
+django.utils.encoding.smart_text = smart_str
+
+
+
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -139,14 +145,18 @@ APPEND_SLASH = False
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         "rest_framework_jwt.authentication.JSONWebTokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
+
+
     ),
     # 'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 1000,
 }
+
 
 JWT_AUTH = {
     "JWT_EXPIRATION_DELTA": datetime.timedelta(seconds=259200),
@@ -155,6 +165,9 @@ JWT_AUTH = {
     "JWT_REFRESH_EXPIRATION_DELTA": datetime.timedelta(seconds=259200),
     "JWT_AUTH_COOKIE": "JWT",
 }
+
+
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/

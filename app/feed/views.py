@@ -15,7 +15,7 @@ from .serializers import *
 from .models import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from user.permissions import IsSpaceOwnerPermission, IsModeratorPermission
-from user.models import User
+from user.models import User, Friends
 from app.settings import DOMAIN_URL
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
@@ -26,11 +26,89 @@ from django_filters.rest_framework import DjangoFilterBackend
 import uuid
 import re
 import random
+from datetime import datetime, timedelta, date
+import datetime
+from django.utils import timezone
+
 
 import requests
 from django.http import JsonResponse
 
 # Create your views here.
+def explore(request):
+    user = request.user
+    spaces = Space.objects.all()
+    posts = Post.objects.all()
+    recommended_posts = []
+
+    #friends list
+    friends = Friends.objects.get(owner=user.id)
+    followings = friends.friend_list.all()
+
+    for post in posts:
+        score = 0
+
+        #space subscriptions, thumbs up-thumbs down , labels, content of the annotation can affect the mechanism.
+        # let's check if post is liked by someone the user follows
+        for person in post.liked_by.all():
+            if person == user:
+                continue  # skip if the user bookmarked his/her own post
+            if person in followings.all():
+                score += 3
+            else:
+                score += 1
+
+        # let's check if post is liked by someone the user follows
+        for person in post.bookmarked_by.all():
+            if person == user:
+                continue  # skip if the user bookmarked their own post
+            if person in followings.all():
+                score += 3
+            else:
+                score += 1
+
+        # let's check if post is shared by someone the user follows
+        if post.owner in followings.all():
+            score += 5
+
+        # let's check how recent the post is
+        days_since_creation = (datetime.date.today() - post.created_time.date()).days
+        if days_since_creation == 0:
+            score += 3
+        elif days_since_creation <= 7:
+            score += 2
+        elif days_since_creation <= 30:
+            score += 1
+
+        # here we are checking if post has any comments, and if the comments are shared by someone we follow.
+        comments = Comment.objects.filter(post=post)
+        for comment in comments:
+            if comment.user in followings.all():
+                score += 3
+            else:
+                score += 1
+
+
+        # Check if the post title includes a space name owned or moderated by the user or if user is a member of a space
+        space_names = [space.title.lower() for space in spaces if space.owner == user or space.moderator.filter(id=user.id).exists() or space.member.filter(id=user.id).exists()]
+        if any(space_name in post.title.lower() for space_name in space_names):
+            score += 15
+
+        # Check if the post content includes a space name owned or moderated by the user or if user is a member of a space
+        space_names = [space.title.lower() for space in spaces if space.owner == user or space.moderator.filter(id=user.id).exists() or space.member.filter(id=user.id).exists()]
+        if any(space_name in post.description.lower() for space_name in space_names):
+            score += 8
+
+
+
+        recommended_posts.append([post, score])
+
+
+    # sort the recommended posts by their score in descending order
+    recommended_posts = sorted(recommended_posts, key=lambda x: x[1], reverse=True)
+
+    context = {'spaces': spaces, 'recommended_posts': recommended_posts}
+    return render(request, "explore.html", context)
 
 class WikidataViewSet(viewsets.ViewSet):
     def list(self, request):
@@ -40,7 +118,7 @@ class WikidataViewSet(viewsets.ViewSet):
             response = requests.get(url)
             if response.ok:
                 data = response.json()
-                suggestions = []                
+                suggestions = []
                 for result in data["search"]:
                     suggestions.append(result)
                     print(result)
@@ -556,7 +634,7 @@ class PostViewSet(viewsets.ModelViewSet):
         user = User.objects.filter(id=request.user.id).first()
         request.data["owner"] = user.id
         user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data     
+        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
         if existing_post and not is_confirmed:
             data = Post.objects.all().order_by("-id")
             posts = PostListSerializer(data, many=True).data
@@ -794,6 +872,8 @@ class PostViewSet(viewsets.ModelViewSet):
                 "DOMAIN_URL": DOMAIN_URL,
             },
         )
+
+
 
     @action(detail=False, methods=["get"], name="Liked Posts")
     def own_posts(self, request, pk=None):
