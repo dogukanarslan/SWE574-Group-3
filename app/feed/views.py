@@ -834,9 +834,11 @@ class PostViewSet(viewsets.ModelViewSet):
         user = request.user
         data = request.data
         search_keyword = data["search_keyword"]
+        search_semantic_keyword = data.get("search_semantic_keyword")
         space_check_box = data.get("space_check_box")
         post_check_box = data.get("post_check_box")
         user_check_box = data.get("user_check_box")
+        label_check_box = data.get("label_check_box")
 
         if space_check_box and not (post_check_box and user_check_box):
             space_data = Space.objects.filter(
@@ -863,6 +865,34 @@ class PostViewSet(viewsets.ModelViewSet):
             
             space_data=None
             post_data=None
+
+        elif label_check_box and not (space_check_box and user_check_box and post_check_box):
+
+            print("asdf",request.data.get("selected_semantic_tags"))
+
+            if  request.data.get("selected_semantic_tags") is not None and request.data.get("selected_semantic_tags")!='':
+                labels=request.data.get("selected_semantic_tags").split("item:")
+                print(labels)
+                for label in labels:
+                    if label is not None and label!="":
+                        information = label.split("|")
+                        name=information[0]
+                        description=information[1]
+                        qid=information[2]
+                        print(name,description)
+                        try:
+                            label = Label.objects.get(name=name,description=description,label_type="Semantic",qid=qid)
+                            print("try",label)
+                            post_data = Post.objects.filter(
+                                Q(label__id = label.id)
+                            ).distinct()
+                        except:
+                            post_data = None
+            else:
+                post_data = None
+
+            space_data=None
+            user_data=None
 
         else:
             space_data = Space.objects.filter(
