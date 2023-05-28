@@ -1,5 +1,5 @@
 # SWE574 Spring 2023
-This repository is a project for the class named SWE574 - Software Development as a Team in Boğaziçi University Software Engineering Deparment.
+This repository is a project for the class named SWE574 - Software Development as a Team in Boğaziçi University Software Engineering Department.
 
 ### URL
 Project URL: http://13.48.149.195:8000/<br/>
