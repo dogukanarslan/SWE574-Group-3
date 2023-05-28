@@ -833,40 +833,40 @@ class PostViewSet(viewsets.ModelViewSet):
     def search_request(self, request, pk=None):
         user = request.user
         data = request.data
-        search_keyword = data["search_keyword"]
-        search_semantic_keyword = data.get("search_semantic_keyword")
+        search_any_keyword = data["keyword"]
+        search_keyword = data.get("search_keyword")
         space_check_box = data.get("space_check_box")
         post_check_box = data.get("post_check_box")
         user_check_box = data.get("user_check_box")
-        label_check_box = data.get("label_check_box")
+        semantic_check_box =  data.get("semantic_check_box")
 
         if space_check_box and not (post_check_box and user_check_box):
             space_data = Space.objects.filter(
-            Q(title__icontains=search_keyword) | Q(description__contains=search_keyword)
+            Q(title__icontains=search_any_keyword) | Q(description__contains=search_any_keyword)
         ).distinct()
             post_data=None
             user_data=None
 
         elif post_check_box and not (space_check_box and user_check_box):
             post_data = Post.objects.filter(
-                Q(title__icontains=search_keyword)
-                | Q(description__icontains=search_keyword)
-                | Q(platform__icontains=search_keyword)
-                | Q(link__icontains=search_keyword)
-                | Q(space__title__icontains=search_keyword)
-                | Q(label__name__icontains=search_keyword)
+                Q(title__icontains=search_any_keyword)
+                | Q(description__icontains=search_any_keyword)
+                | Q(platform__icontains=search_any_keyword)
+                | Q(link__icontains=search_any_keyword)
+                | Q(space__title__icontains=search_any_keyword)
+                | Q(label__name__icontains=search_any_keyword)
             ).distinct()
             space_data=None
             user_data=None
         elif user_check_box and not (space_check_box and post_check_box):
             user_data=User.objects.filter(
-                Q(first_name__icontains=search_keyword)
-                | Q(last_name__icontains=search_keyword)).distinct()
+                Q(first_name__icontains=search_any_keyword)
+                | Q(last_name__icontains=search_any_keyword)).distinct()
             
             space_data=None
             post_data=None
 
-        elif label_check_box and not (space_check_box and user_check_box and post_check_box):
+        elif semantic_check_box and not (space_check_box and user_check_box and post_check_box):
 
             print("asdf",request.data.get("selected_semantic_tags"))
 
@@ -896,20 +896,20 @@ class PostViewSet(viewsets.ModelViewSet):
 
         else:
             space_data = Space.objects.filter(
-            Q(title__contains=search_keyword) | Q(description__contains=search_keyword)
+            Q(title__contains=search_any_keyword) | Q(description__contains=search_any_keyword)
             ).distinct()
             post_data = Post.objects.filter(
-                Q(title__icontains=search_keyword)
-                | Q(description__icontains=search_keyword)
-                | Q(platform__icontains=search_keyword)
-                | Q(link__icontains=search_keyword)
-                | Q(space__title__icontains=search_keyword)
-                | Q(label__name__icontains=search_keyword)
+                Q(title__icontains=search_any_keyword)
+                | Q(description__icontains=search_any_keyword)
+                | Q(platform__icontains=search_any_keyword)
+                | Q(link__icontains=search_any_keyword)
+                | Q(space__title__icontains=search_any_keyword)
+                | Q(label__name__icontains=search_any_keyword)
             ).distinct()
             user_data=User.objects.filter(
-                Q(first_name__icontains=search_keyword)
-                | Q(last_name__icontains=search_keyword)
-                | Q(description__icontains=search_keyword)).distinct()
+                Q(first_name__icontains=search_any_keyword)
+                | Q(last_name__icontains=search_any_keyword)
+                | Q(description__icontains=search_any_keyword)).distinct()
 
         posts = PostListSerializer(post_data, many=True).data
         spaces = SpaceListSerializer(space_data, many=True).data
