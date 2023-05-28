@@ -39,4 +39,4 @@ class UserLoginTest(TestCase):
         response = self.client.post(
             "/user/login/", {"email": "john.doe@test.com", "password": "wrong"}
         )
-        self.assertFalse(response.status_code == 200)
+        self.assertFalse(response.status_code == 302)
