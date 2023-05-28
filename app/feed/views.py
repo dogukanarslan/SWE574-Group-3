@@ -204,24 +204,19 @@ class SpaceViewSet(viewsets.ModelViewSet):
         user = request.user
         user_obj = User.objects.get(id=user.id)
         space = self.get_object()
+
         if space.is_private:
             space_join_request= SpaceMemberRequest.objects.create(owner=user_obj, space=space)
         else:
             space.member.add(user_obj)
             space.save()
-        spaces = Space.objects.all().order_by("-id")
-        space_data = SpaceListSerializer(spaces,many=True).data
-        user_data = UserListSerializer(user_obj).data
-        return render(
-                request,
-                "spaces.html",
-                {
-                    "spaces": space_data,
-                    "user_data":user_data,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
+
+
+        previous_url = request.META.get('HTTP_REFERER')
+
+        return redirect(previous_url)
+
+
     @action(detail=True, methods=["get"], name="Approve User")
     def left_space(self, request, pk=None):
         user = request.user
@@ -444,25 +439,10 @@ class SpaceViewSet(viewsets.ModelViewSet):
         post_obj = Post.objects.get(id=post_id)
         post_obj.space=None
         post_obj.save()
-        user = User.objects.get(id=request.user.id)
-        user_data = UserListSerializer(user).data
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data 
-        labels = Label.objects.all()
-        space_data = SpaceListSerializer(space).data
-        return render(
-            request,
-            "spacePosts.html",
-            {
-                "space": space_data,
-                "user_liked_posts":user_liked_posts,
-                "user_data":user_data,
-                "user_bookmarked_posts":user_bookmarked_posts,
-                "labels": labels,
-                "owner": user.first_name + " " + user.last_name,
-                "DOMAIN_URL": DOMAIN_URL,
-            },
-        )
+
+        return redirect("/feed/space/" + str(space.id) + "/")
+    
+
     def retrieve(self, request, *args, **kwargs):
         space = self.get_object()
         data = SpaceListSerializer(space).data
@@ -634,40 +614,10 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.liked_by.add(user)
         post.save()
-        data = Post.objects.all().order_by("-id")
-        posts = PostListSerializer(data, many=True).data
-        labels=Label.objects.all()
 
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
-        if post.space:
-            space_obj = Space.objects.get(id=post.space.id)
-            space = SpaceListSerializer(space_obj).data
-            return render(
-                request,
-                "spacePosts.html",
-                {
-                    "space":space,
-                    "posts": posts,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
-        else:
-            return render(
-                request,
-                "posts.html",
-                {
-                    "posts": posts,
-                    "labels": labels,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
+        previous_url = request.META.get('HTTP_REFERER')
+
+        return redirect(previous_url)
 
 
     @action(detail=True, methods=["get"], name="Like Post")
@@ -676,22 +626,11 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.liked_by.remove(user)
         post.save()
-        data = Post.objects.filter(liked_by__id=user.id).order_by("-id")
-        posts = PostListSerializer(data, many=True).data
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data    
-        # return Response({"detail":"Liked succesfully"},status=200)
-        return render(
-            request,
-            "likedPosts.html",
-            {
-                "posts": posts,
-                "user_liked_posts":user_liked_posts,
-                "user_bookmarked_posts":user_bookmarked_posts,
-                "owner": user.first_name + " " + user.last_name,
-                "DOMAIN_URL": DOMAIN_URL,
-            },
-        )
+
+        previous_url = request.META.get('HTTP_REFERER')
+
+        return redirect(previous_url)
+
 
     @action(detail=True, methods=["get"], name="Like Post")
     def bookmark_post(self, request, pk=None):
@@ -699,39 +638,11 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.bookmarked_by.add(user)
         post.save()
-        labels=Label.objects.all()
-        data = Post.objects.all().order_by("-id")
-        posts = PostListSerializer(data, many=True).data
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
-        if post.space:
-            space_obj = Space.objects.get(id=post.space.id)
-            space = SpaceListSerializer(space_obj).data
-            return render(
-                request,
-                "spacePosts.html",
-                {
-                    "space":space,
-                    "posts": posts,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
-        else:
-            return render(
-                request,
-                "posts.html",
-                {
-                    "posts": posts,
-                    "labels": labels,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
+
+        previous_url = request.META.get('HTTP_REFERER')
+
+        return redirect(previous_url)
+
 
     @action(detail=True, methods=["get"], name="Like Post")
     def undo_bookmark_post(self, request, pk=None):
@@ -739,22 +650,11 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.bookmarked_by.remove(user)
         post.save()
-        data = Post.objects.filter(bookmarked_by__id=user.id).order_by("-id")
-        posts = PostListSerializer(data, many=True).data
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data    
-        # return Response({"detail":"Liked succesfully"},status=200)
-        return render(
-            request,
-            "bookmarkedPosts.html",
-            {
-                "posts": posts,
-                "user_liked_posts":user_liked_posts,
-                "user_bookmarked_posts":user_bookmarked_posts,
-                "owner": user.first_name + " " + user.last_name,
-                "DOMAIN_URL": DOMAIN_URL,
-            },
-        )
+
+        previous_url = request.META.get('HTTP_REFERER')
+
+        return redirect(previous_url)
+
 
     @action(detail=False, methods=["get"], name="Liked Posts")
     def liked_posts(self, request, pk=None):
@@ -990,41 +890,14 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         user = request.user
         description = request.GET.get("value")
-        print(description)
         user_obj = User.objects.get(id=user.id)
-        report_obj = Report.objects.create(user=user_obj,post=post,description=description)
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data 
-        if post.space:
-            space = SpaceListSerializer(Space.objects.get(id=post.space.id)).data
-            data = PostListSerializer(Post.objects.filter(space=space["id"]),many=True).data
-            return render(
-                request,
-                "spacePosts.html",
-                {
-                    "space":space,
-                    "posts": data,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
-        else:
-            posts=PostListSerializer(Post.objects.all(),many=True).data
-            labels=Label.objects.all()
-            return render(
-                request,
-                "posts.html",
-                {
-                    "posts": posts,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "labels": labels,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
+        Report.objects.create(user=user_obj,post=post,description=description)
+        
+        previous_url = request.META.get('HTTP_REFERER')
+
+        return redirect(previous_url)
+
+
     @action(detail=True, methods=["get"], name="Like Post")
     def edit_form(self, request, pk=None):
         post_obj = self.get_object()
@@ -1111,7 +984,6 @@ class PostViewSet(viewsets.ModelViewSet):
         data = Post.objects.all().order_by("-id")
         labels = Label.objects.all()
         posts = PostListSerializer(data, many=True).data
-        print('is_confirmed:', request.data.get("is_confirmed"))
 
         if request.user.is_anonymous == False:
             user = request.user
