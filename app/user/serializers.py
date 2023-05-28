@@ -83,11 +83,20 @@ class UserListSerializer(serializers.ModelSerializer):
         follower_count = len(friend_list)
         liked_count = len(liked_by)
         if follower_count >= 3 and liked_count >= follower_count * 0.4:
-            badge = Badge.objects.get(level=3) # Gold Badge
+            try:
+                badge = Badge.objects.get(level=3) # Gold Badge
+            except:
+                badge = Badge.objects.create(name="gold", description="gold", level=3) # Gold Badge
         elif follower_count >= 2 and liked_count >= follower_count * 0.4:
-            badge = Badge.objects.get(level=2) # Silver Badge
+            try:
+                badge = Badge.objects.get(level=2) # Silver Badge
+            except:
+                badge = Badge.objects.create(name="silver", description="silver", level=2) # Silver Badge
         elif follower_count >= 1 and liked_count >= follower_count * 0.4:
-            badge = Badge.objects.get(level=1) # Bronz Badge
+            try:
+                badge = Badge.objects.get(level=1) # Bronze Badge
+            except:
+                badge = Badge.objects.create(name="bronze", description="bronze", level=1) # Bronze Badge
         else:
             badge = None
             

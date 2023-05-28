@@ -33,10 +33,10 @@ class UserLoginTest(TestCase):
             "/user/login/", {"email": "john.doe@test.com", "password": "1234qwer"}
         )
         print("response", response)
-        self.assertTrue(response.status_code == 200)
+        self.assertTrue(response.status_code == 302)
 
     def test_wrong_password_with_request(self):
         response = self.client.post(
             "/user/login/", {"email": "john.doe@test.com", "password": "wrong"}
         )
-        self.assertFalse(response.status_code == 200)
+        self.assertFalse(response.status_code == 302)
