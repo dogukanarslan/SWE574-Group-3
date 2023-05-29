@@ -11,11 +11,10 @@ Admin Panel: http://13.48.149.195:8000/admin/
 - Cansın Cömert
 - Doğukan Arslan
 - Ege Pekgenç
+- İlayda Kurt
 - Mehmet Emre Berk
 - Miray İyidoğan
-- İlayda Kurt
 - Samed Torun
-
 
 ### Run with Docker
 
