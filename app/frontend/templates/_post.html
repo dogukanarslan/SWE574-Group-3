@@ -20,6 +20,7 @@
                     {% endif %}
                 </div>
                 <div class="card-text">{{ post.created_time }}</div>
+                <div><p>Likes: <span class="like-count">{{ post.liked_by|length }}</span></p></div>
                 <div>
                     {% for label in post.label %}
                     <span class="badge bg-secondary">{{ label.name }}</span>
@@ -46,8 +47,7 @@
                     {% endif %}
                     <a href="{{DOMAIN_URL}}/feed/post/{{post.id}}/" class="btn btn-sm btn-outline-dark ms-2">Comment</a>
                     <button type="button" class="btn btn-sm btn-outline-danger ms-2" data-bs-toggle="modal"
-                        data-bs-target="#reportModal">Report</button>
-
+                        data-bs-target="#reportModal">Report</button>     
 
                     <div class="modal fade" id="reportModal" role="dialog">
                         <div class="modal-dialog">
@@ -58,6 +58,7 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                                 </div>
+
 
                                 <div class="modal-body">
                                     <form>
