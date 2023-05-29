@@ -736,15 +736,15 @@ class PostViewSet(viewsets.ModelViewSet):
         space_check_box = data.get("space_check_box")
         post_check_box = data.get("post_check_box")
         user_check_box = data.get("user_check_box")
+        post_data=None
+        user_data=None
+        space_data=None
 
-        if space_check_box and not (post_check_box and user_check_box):
+        if space_check_box:
             space_data = Space.objects.filter(
-            Q(title__icontains=search_keyword) | Q(description__contains=search_keyword)
-        ).distinct()
-            post_data=None
-            user_data=None
-
-        elif post_check_box and not (space_check_box and user_check_box):
+            Q(title__icontains=search_keyword) | Q(description__contains=search_keyword)).distinct()
+   
+        if post_check_box:
             post_data = Post.objects.filter(
                 Q(title__icontains=search_keyword)
                 | Q(description__icontains=search_keyword)
@@ -753,20 +753,16 @@ class PostViewSet(viewsets.ModelViewSet):
                 | Q(space__title__icontains=search_keyword)
                 | Q(label__name__icontains=search_keyword)
             ).distinct()
-            space_data=None
-            user_data=None
-        elif user_check_box and not (space_check_box and post_check_box):
+
+        if user_check_box:
             user_data=User.objects.filter(
                 Q(first_name__icontains=search_keyword)
-                | Q(last_name__icontains=search_keyword)).distinct()
-            
-            space_data=None
-            post_data=None
-
-        else:
+                | Q(last_name__icontains=search_keyword)
+                | Q(description__icontains=search_keyword)).distinct()    
+        
+        if not (user_check_box or space_check_box or post_check_box):
             space_data = Space.objects.filter(
-            Q(title__contains=search_keyword) | Q(description__contains=search_keyword)
-            ).distinct()
+            Q(title__icontains=search_keyword) | Q(description__contains=search_keyword)).distinct()
             post_data = Post.objects.filter(
                 Q(title__icontains=search_keyword)
                 | Q(description__icontains=search_keyword)
@@ -778,7 +774,7 @@ class PostViewSet(viewsets.ModelViewSet):
             user_data=User.objects.filter(
                 Q(first_name__icontains=search_keyword)
                 | Q(last_name__icontains=search_keyword)
-                | Q(description__icontains=search_keyword)).distinct()
+                | Q(description__icontains=search_keyword)).distinct()   
 
         posts = PostListSerializer(post_data, many=True).data
         spaces = SpaceListSerializer(space_data, many=True).data
