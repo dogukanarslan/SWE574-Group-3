@@ -75,31 +75,38 @@ class UserListSerializer(serializers.ModelSerializer):
     
     def assign_badge(self,obj):
         try:
-            friend_list = Friends.objects.filter(friend_list=obj)
-            liked_by = Post.objects.filter(liked_by=obj)
+            friend_obj = Friends.objects.filter(friend_list__id=obj.id)
+            if friend_obj:
+                friend_list=friend_obj
+            else:
+                friend_list = []        
+            posts = Post.objects.filter(owner=obj)
+            liked_by = [0]
+            if posts:
+                for post in posts:
+                    liked_by.append(len(post.liked_by.all()))
         except Friends.DoesNotExist:
             friend_list = []        
-            liked_by = []
+            liked_by = [0]
         follower_count = len(friend_list)
-        liked_count = len(liked_by)
-        if follower_count >= 10 and liked_count >= follower_count * 0.4:
+        liked_count = max(liked_by)
+        if follower_count >= 3 and liked_count >= follower_count * 0.4:
             try:
                 badge = Badge.objects.get(level=3) # Gold Badge
             except:
                 badge = Badge.objects.create(name="gold", description="gold", level=3) # Gold Badge
-        elif follower_count >= 8 and liked_count >= follower_count * 0.4:
+        elif follower_count >= 2 and liked_count >= follower_count * 0.4:
             try:
                 badge = Badge.objects.get(level=2) # Silver Badge
             except:
                 badge = Badge.objects.create(name="silver", description="silver", level=2) # Silver Badge
-        elif follower_count >= 5 and liked_count >= follower_count * 0.4:
+        elif follower_count >= 1 and liked_count >= follower_count * 0.4:
             try:
                 badge = Badge.objects.get(level=1) # Bronze Badge
             except:
                 badge = Badge.objects.create(name="bronze", description="bronze", level=1) # Bronze Badge
         else:
             badge = None
-            
         obj.badge = badge        
         obj.save()
         return obj.badge
