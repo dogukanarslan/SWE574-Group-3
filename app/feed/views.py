@@ -732,49 +732,101 @@ class PostViewSet(viewsets.ModelViewSet):
     def search_request(self, request, pk=None):
         user = request.user
         data = request.data
-        search_keyword = data["search_keyword"]
+        search_any_keyword = data["keyword"]
+        search_keyword = data.get("search_keyword")
         space_check_box = data.get("space_check_box")
         post_check_box = data.get("post_check_box")
         user_check_box = data.get("user_check_box")
+        semantic_check_box =  data.get("semantic_check_box")
+
         post_data=None
         user_data=None
         space_data=None
 
         if space_check_box:
             space_data = Space.objects.filter(
-            Q(title__icontains=search_keyword) | Q(description__contains=search_keyword)).distinct()
+            Q(title__icontains=search_any_keyword) | Q(description__contains=search_any_keyword)).distinct()
    
-        if post_check_box:
-            post_data = Post.objects.filter(
-                Q(title__icontains=search_keyword)
-                | Q(description__icontains=search_keyword)
-                | Q(platform__icontains=search_keyword)
-                | Q(link__icontains=search_keyword)
-                | Q(space__title__icontains=search_keyword)
-                | Q(label__name__icontains=search_keyword)
-            ).distinct()
+        if post_check_box or semantic_check_box:
+            if post_check_box and not semantic_check_box:
+                post_data = Post.objects.filter(
+                    Q(title__icontains=search_any_keyword)
+                    | Q(description__icontains=search_any_keyword)
+                    | Q(platform__icontains=search_any_keyword)
+                    | Q(link__icontains=search_any_keyword)
+                    | Q(space__title__icontains=search_any_keyword)
+                    | Q(label__name__icontains=search_any_keyword)
+                ).distinct()
+            
+            elif semantic_check_box and not post_check_box:
+                print("asdf",request.data.get("selected_semantic_tags"))
+
+                if  request.data.get("selected_semantic_tags") is not None and request.data.get("selected_semantic_tags")!='':
+                    labels=request.data.get("selected_semantic_tags").split("item:")
+                    print(labels)
+                    for label in labels:
+                        if label is not None and label!="":
+                            information = label.split("|")
+                            name=information[0]
+                            description=information[1]
+                            qid=information[2]
+                            print(name,description)
+                            try:
+                                label = Label.objects.get(name=name,description=description,label_type="Semantic",qid=qid)
+                                print("try",label)
+                                post_data = Post.objects.filter(
+                                        Q(label__id = label.id)
+                                    ).distinct()
+                            except:
+                                post_data = None
+
+            else:
+                if  request.data.get("selected_semantic_tags") is not None and request.data.get("selected_semantic_tags")!='':
+                    labels=request.data.get("selected_semantic_tags").split("item:")
+                    print(labels)
+                    for label in labels:
+                        if label is not None and label!="":
+                            information = label.split("|")
+                            name=information[0]
+                            description=information[1]
+                            qid=information[2]
+                            print(name,description)
+                            try:
+                                label = Label.objects.get(name=name,description=description,label_type="Semantic",qid=qid)
+                                print("try",label)
+                                post_data = Post.objects.filter(
+                                         Q(title__icontains=search_any_keyword)
+                                        | Q(description__icontains=search_any_keyword)
+                                        | Q(platform__icontains=search_any_keyword)
+                                        | Q(link__icontains=search_any_keyword)
+                                        | Q(space__title__icontains=search_any_keyword)
+                                        | Q(label__name__icontains=search_any_keyword)
+                                        | Q(label__id = label.id)
+                                    ).distinct()
+                            except:
+                                post_data = None        
 
         if user_check_box:
             user_data=User.objects.filter(
-                Q(first_name__icontains=search_keyword)
-                | Q(last_name__icontains=search_keyword)
-                | Q(description__icontains=search_keyword)).distinct()    
+                Q(first_name__icontains=search_any_keyword)
+                | Q(last_name__icontains=search_any_keyword)
+                | Q(description__icontains=search_any_keyword)).distinct()    
         
-        if not (user_check_box or space_check_box or post_check_box):
+        if not (user_check_box or space_check_box or post_check_box or semantic_check_box):
             space_data = Space.objects.filter(
-            Q(title__icontains=search_keyword) | Q(description__contains=search_keyword)).distinct()
+            Q(title__icontains=search_any_keyword) | Q(description__contains=search_any_keyword)).distinct()
             post_data = Post.objects.filter(
-                Q(title__icontains=search_keyword)
-                | Q(description__icontains=search_keyword)
-                | Q(platform__icontains=search_keyword)
-                | Q(link__icontains=search_keyword)
-                | Q(space__title__icontains=search_keyword)
-                | Q(label__name__icontains=search_keyword)
+                Q(title__icontains=search_any_keyword)
+                | Q(description__icontains=search_any_keyword)
+                | Q(platform__icontains=search_any_keyword)
+                | Q(link__icontains=search_any_keyword)
+                | Q(space__title__icontains=search_any_keyword)
+                | Q(label__name__icontains=search_any_keyword)
             ).distinct()
             user_data=User.objects.filter(
-                Q(first_name__icontains=search_keyword)
-                | Q(last_name__icontains=search_keyword)
-                | Q(description__icontains=search_keyword)).distinct()   
+                Q(first_name__icontains=search_any_keyword)
+                | Q(last_name__icontains=search_any_keyword)
+                | Q(description__icontains=search_any_keyword)).distinct()   
 
         posts = PostListSerializer(post_data, many=True).data
         spaces = SpaceListSerializer(space_data, many=True).data
