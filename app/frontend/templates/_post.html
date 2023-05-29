@@ -20,6 +20,7 @@
                     {% endif %}
                 </div>
                 <div class="card-text">{{ post.created_time }}</div>
+                <div><p>Likes: <span class="like-count">{{ post.liked_by|length }}</span></p></div>
                 <div>
                     {% for label in post.label %}
                     <span class="badge bg-secondary">{{ label.name }}</span>
