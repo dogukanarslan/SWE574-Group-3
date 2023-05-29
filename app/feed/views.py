@@ -141,11 +141,15 @@ class SpaceViewSet(viewsets.ModelViewSet):
                 Q(first_name__icontains=search_keyword)
                 | Q(last_name__icontains=search_keyword)).distinct(),many=True).data
         print(user_data)
+        user_obj = User.objects.get(id=user.id) 
+        pending_moderator_requests =SpaceModeratorRequestListSerializer(SpaceModeratorRequest.objects.filter(space=space,status="Pending"),many=True).data
+
         return render(
                 request,
                 "spaceSettings.html",
                 {
                     "space": space_data,
+                    "pending_moderator_requests":pending_moderator_requests,
                     "user_data":user_data,
                     "owner": user.first_name + " " + user.last_name,
                     "DOMAIN_URL": DOMAIN_URL,
