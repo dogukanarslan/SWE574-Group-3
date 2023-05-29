@@ -99,7 +99,16 @@ def explore(request):
         if any(space_name in post.description.lower() for space_name in space_names):
             score += 8
 
-
+        # Check if the non-semantic label of the post includes a space name subscribed by the user
+        subscribed_space_names = [
+            space.title.lower()
+            for space in spaces
+            if space.member.filter(id=user.id).exists()
+        ]
+        non_semantic_labels = post.label.filter(label_type="Non-Semantic")
+        for label in non_semantic_labels:
+            if label.name.lower() in subscribed_space_names:
+                score += 5
 
         recommended_posts.append([post, score])
 
