@@ -10,7 +10,6 @@ from rest_framework.decorators import api_view
 from rest_framework import mixins
 from rest_framework.generics import UpdateAPIView, DestroyAPIView
 
-
 from .serializers import *
 from .models import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -108,7 +107,16 @@ def explore(request):
         non_semantic_labels = post.label.filter(label_type="Non-Semantic")
         for label in non_semantic_labels:
             if label.name.lower() in subscribed_space_names:
-                score += 5
+                score += 15
+
+
+        # # Check if the post has annotations and if those annotations belong to users the user follows
+        # annotations = Annotation.objects.filter(target__post=post)
+        # for annotation in annotations:
+        #     if annotation.body.get('creator') in followings:
+        #         score += 50
+        #     else:
+        #         score += 30
 
         recommended_posts.append([post, score])
 
