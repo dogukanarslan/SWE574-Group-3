@@ -53,52 +53,56 @@ def explore(request):
             if person == user:
                 continue  # skip if the user bookmarked his/her own post
             if person in followings.all():
-                score += 3
+                score += 20
             else:
-                score += 1
+                score += 10
 
         # let's check if post is liked by someone the user follows
         for person in post.bookmarked_by.all():
             if person == user:
                 continue  # skip if the user bookmarked their own post
             if person in followings.all():
-                score += 3
+                score += 16
             else:
-                score += 1
+                score += 8
 
         # let's check if post is shared by someone the user follows
         if post.owner in followings.all():
-            score += 5
+            score += 30
+            print("30 points since post owner is followed.")
 
         # let's check how recent the post is
         days_since_creation = (datetime.date.today() - post.created_time.date()).days
         if days_since_creation == 0:
-            score += 3
+            score += 20
+            print("10 points since recency")
         elif days_since_creation <= 7:
-            score += 2
+            score += 10
         elif days_since_creation <= 30:
-            score += 1
+            score += 5
 
         # here we are checking if post has any comments, and if the comments are shared by someone we follow.
         comments = Comment.objects.filter(post=post)
         for comment in comments:
             if comment.user in followings.all():
-                score += 3
+                score += 16
             else:
-                score += 1
+                score += 8
 
 
-        # Check if the post title includes a space name owned or moderated by the user or if user is a member of a space
+        # Let's give increased score if the post title includes a space name owned or moderated by the user or if user is a member of a space
         space_names = [space.title.lower() for space in spaces if space.owner == user or space.moderator.filter(id=user.id).exists() or space.member.filter(id=user.id).exists()]
         if any(space_name in post.title.lower() for space_name in space_names):
-            score += 15
+            score += 40
 
-        # Check if the post content includes a space name owned or moderated by the user or if user is a member of a space
+
+        # Let's increase the score if the post content includes a space name owned or moderated by the user or if user is a member of a space
         space_names = [space.title.lower() for space in spaces if space.owner == user or space.moderator.filter(id=user.id).exists() or space.member.filter(id=user.id).exists()]
         if any(space_name in post.description.lower() for space_name in space_names):
-            score += 8
+            score += 25
 
-        # Check if the non-semantic label of the post includes a space name subscribed by the user
+
+        # Let's check if the non-semantic label of the post includes a space name subscribed by the user
         subscribed_space_names = [
             space.title.lower()
             for space in spaces
@@ -107,19 +111,25 @@ def explore(request):
         non_semantic_labels = post.label.filter(label_type="Non-Semantic")
         for label in non_semantic_labels:
             if label.name.lower() in subscribed_space_names:
-                score += 15
+                score += 50
 
 
-        # # Check if the post has annotations and if those annotations belong to users the user follows
-        # annotations = Annotation.objects.filter(target__post=post)
-        # for annotation in annotations:
-        #     if annotation.body.get('creator') in followings:
-        #         score += 50
-        #     else:
-        #         score += 30
+        filters = {}
+        filters["target__source"] = DOMAIN_URL + '/' + str(post.id) + '/'
+
+        # Give 8 points for each annotation irrelevant of content of it, since it represents an interaction
+        annotations = Annotation.objects.filter(**filters)
+        score += 8*(len(annotations))
+
+
+        # Check if the post has annotations related to user's space.
+        for annotation in annotations:
+            print(annotation.body.get('value'))
+            if annotation.body.get('value').lower() in subscribed_space_names:
+                print(annotation.body.get('value').lower())
+                score += 50
 
         recommended_posts.append([post, score])
-
 
     # sort the recommended posts by their score in descending order
     recommended_posts = sorted(recommended_posts, key=lambda x: x[1], reverse=True)
@@ -1257,6 +1267,7 @@ class AnnotationView(viewsets.ModelViewSet,generics.CreateAPIView,generics.ListA
         source = self.request.query_params.get("source")
         image_annotation = self.request.query_params.get("image")
         text_annotation = self.request.query_params.get("text")
+
 
         filters = {}
         if source:
