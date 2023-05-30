@@ -17,6 +17,7 @@ router.register("wikidata-search", views.WikidataViewSet, basename="wikidata-vie
 app_name = "feed"
 
 urlpatterns = [
-    path("", include(router.urls))
+    path('explore/', views.explore, name='explore'),
+    path("", include(router.urls)),
 ]
 

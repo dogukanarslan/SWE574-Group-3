@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <h1 class="mb-4">Explore</h1>
+    {% for post, score in recommended_posts %}
+        <div class="card mt-2">
+            <div class="row g-0">
+                <div class="col-md-4">
+                    <img src="{{ post.image.url }}" alt="Post" class="img-fluid rounded-start">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ post.title }}</h5>
+                        {% if post.label.all %}
+                            {% for label in post.label.all %}
+                                <span class="badge bg-secondary">{{ label.name }}</span>
+                            {% endfor %}
+                        {% endif %}
+                        {% if post.platform %}
+                            {% if not post.label.all %}
+                                <span class="badge bg-dark">{{ post.platform }}</span>
+                            {% else %}
+                                <span class="badge bg-dark ml-2">{{ post.platform }}</span>
+                            {% endif %}
+                        {% endif %}
+                        <div class="card-text">{{ post.description }}</div>
+                        <div class="card-text">{{ post.owner.first_name }} {{ post.owner.last_name }}</div>
+                        <div class="card-text">{{ post.created_time }}</div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ post.post_link }}" target="_blank">{{ post.post_link }}</a>
+                            <div class="d-flex flex-column">
+                                <a href="{{ DOMAIN_URL }}/feed/post/{{ post.id }}/" class="btn btn-sm btn-outline-dark">See Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

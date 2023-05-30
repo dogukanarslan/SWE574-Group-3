@@ -154,8 +154,8 @@ class Annotation(models.Model):
     context = models.CharField(max_length=255, default="http://www.w3.org/ns/anno.jsonld")
     type = models.CharField(max_length=255, default="Annotation")
     target = JSONField(blank=True, null=True)
-    body = models.JSONField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
+    body = models.JSONField(blank=True, null=True)
 
 
 class Report(models.Model):
