@@ -2,14 +2,14 @@
 
 {% block content %}
 
-<form method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/post/search_request/">
+<form id="main" method="post" enctype="multipart/form-data" action="{{DOMAIN_URL}}/feed/post/search_request/">
   {% csrf_token %}
   {% load static %}
 
   <div class="mb-3">
-    <label for="search_keyword" class="form-label">Search</label>
-    <input id="search_keyword" class="form-control" type="text" name="search_keyword" value="{{ search_keyword }}"
-      placeholder="Search a keyword" required />
+    <label for="keyword" class="form-label">Search</label>
+    <input id="keyword" class="form-control" type="text" name="keyword" value="{{ keyword }}"
+      placeholder="Search a keyword" />
   </div>
 
   <div class="form-check">
@@ -33,9 +33,45 @@
     </label>
   </div>
 
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" id="semantic_check_box" name="semantic_check_box"
+      onclick="myFunction()" value="Semantic">
+    <label class="form-check-label" for="semantic_check_box">
+      Semantic Tag
+    </label>
+  </div>
+  <input type="hidden" id="selected-semantic-tags" name="selected_semantic_tags" value="{{selected_semantic_tags}}">
+
   <button class="btn btn-dark">Search</button>
 </form>
+<div class="modal fade" id="labelModal" role="dialog">
+  <div class="modal-dialog">
 
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add Label</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="data-form">
+          <div class="mb-3">
+            <label for="search_keyword" class="form-label">Tag</label>
+            <input id="search_keyword" class="form-control" type="text" name="search_keyword" placeholder="add tag"
+              required />
+          </div>
+          <button class="btn btn-outline-dark">Search Label</button>
+        </form>
+        <ul class="list-group semantic-tags mt-3" id="tag-list"></ul>
+        <input type="hidden" id="selected-semantic-tags" name="selected_semantic_tags">
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% for space in spaces %}
 <div class="card mt-2">
   <div class="card-body">
@@ -58,6 +94,7 @@
         <div class="card-text">{{ post.description }}</div>
         <div class="card-text">{{ post.owner.first_name }} {{ post.owner.last_name }}</div>
         <div class="card-text">{{ post.created_time }}</div>
+        <div><p>Likes: <span class="like-count">{{ post.liked_by|length }}</span></p></div>
         <div>
           {% for label in post.label %}
           <span class="badge bg-secondary">{{ label.name }}</span>
@@ -80,5 +117,107 @@
 {% for user in users %}
 {% include '_user.html' %}
 {% endfor %}
+
+<script>
+  const labelModal = new bootstrap.Modal('#labelModal');
+
+  function myFunction() {
+    // Get the checkbox
+    var checkBox = document.getElementById("semantic_check_box");
+    // Get the output text
+    // If the checkbox is checked, display the output text
+    if (checkBox.checked) {
+      labelModal.show()
+    }
+    else {
+      labelModal.hide()
+    }
+  }
+  const wikidataSearchForm = document.getElementById('data-form')
+  const tagList = document.getElementById('tag-list')
+  const label = document.getElementById('search_keyword')
+
+  wikidataSearchForm.addEventListener("submit", (e) => {
+    e.preventDefault()
+    console.log("refresh")
+    fetch(`/feed/wikidata-search/?label=${label.value}`)
+    .then(response => response.json())
+    .then(data => {
+      tagList.innerHTML = ""
+      data.forEach(element => {
+        const el = document.createElement('li')
+        el.classList = 'list-group-item cursor-pointer'
+        titleEl=document.createElement('h6')
+        titleEl.innerHTML=element.label || "-"
+
+        descriptionEl=document.createElement('p')
+        descriptionEl.innerHTML=element.description || "-"
+
+        qidEl=document.createElement('span')
+        qidEl.innerHTML=element.id || "-"
+
+        el.appendChild(titleEl)
+        el.appendChild(descriptionEl)
+        el.appendChild(qidEl)
+
+        el.addEventListener("click", (e) => {
+          console.log("taglist",element.label)
+          el.classList.toggle('active');
+          updateSelectedTags();
+        });
+        tagList.appendChild(el)
+      })
+    })
+  });
+
+  function updateSelectedTags() {
+    const selectedTags = [];
+    const selectedElements = document.querySelectorAll('#tag-list li.active');
+    selectedElements.forEach(element => {
+      console.log("selected el", element)
+      const tagContent = [];
+      tagContent.push(element.querySelector('h6').textContent)
+      tagContent.push(element.querySelector('p').textContent)
+      tagContent.push(element.querySelector('span').textContent)
+      selectedTags.push(tagContent.join('|'));
+
+    });
+    console.log("selectedTags", selectedTags)
+    document.getElementById('selected-semantic-tags').value = selectedTags.join('"item:');
+    console.log(document.getElementById('selected-semantic-tags').value)
+  }
+
+</script>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
+<script>
+  $(function () {
+    $('input')
+      .on('change', function (event) {
+        var $element = $(event.target);
+        var $container = $element.closest('.example');
+
+        if (!$element.data('tagsinput')) return;
+
+        var val = $element.val();
+        if (val === null) val = 'null';
+        var items = $element.tagsinput('items');
+
+        $('code', $('pre.val', $container)).html(
+          $.isArray(val)
+            ? JSON.stringify(val)
+            : '"' + val.replace('"', '\\"') + '"'
+        );
+        $('code', $('pre.items', $container)).html(
+          JSON.stringify($element.tagsinput('items'))
+        );
+      })
+      .trigger('change');
+  });
+</script>
 
 {% endblock %}

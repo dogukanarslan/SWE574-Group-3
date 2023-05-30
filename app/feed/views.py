@@ -246,11 +246,15 @@ class SpaceViewSet(viewsets.ModelViewSet):
                 Q(first_name__icontains=search_keyword)
                 | Q(last_name__icontains=search_keyword)).distinct(),many=True).data
         print(user_data)
+        user_obj = User.objects.get(id=user.id) 
+        pending_moderator_requests =SpaceModeratorRequestListSerializer(SpaceModeratorRequest.objects.filter(space=space,status="Pending"),many=True).data
+
         return render(
                 request,
                 "spaceSettings.html",
                 {
                     "space": space_data,
+                    "pending_moderator_requests":pending_moderator_requests,
                     "user_data":user_data,
                     "owner": user.first_name + " " + user.last_name,
                     "DOMAIN_URL": DOMAIN_URL,
@@ -309,24 +313,19 @@ class SpaceViewSet(viewsets.ModelViewSet):
         user = request.user
         user_obj = User.objects.get(id=user.id)
         space = self.get_object()
+
         if space.is_private:
             space_join_request= SpaceMemberRequest.objects.create(owner=user_obj, space=space)
         else:
             space.member.add(user_obj)
             space.save()
-        spaces = Space.objects.all().order_by("-id")
-        space_data = SpaceListSerializer(spaces,many=True).data
-        user_data = UserListSerializer(user_obj).data
-        return render(
-                request,
-                "spaces.html",
-                {
-                    "spaces": space_data,
-                    "user_data":user_data,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
+
+
+        previous_url = request.META.get('HTTP_REFERER')
+
+        return redirect(previous_url)
+
+
     @action(detail=True, methods=["get"], name="Approve User")
     def left_space(self, request, pk=None):
         user = request.user
@@ -549,25 +548,10 @@ class SpaceViewSet(viewsets.ModelViewSet):
         post_obj = Post.objects.get(id=post_id)
         post_obj.space=None
         post_obj.save()
-        user = User.objects.get(id=request.user.id)
-        user_data = UserListSerializer(user).data
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data 
-        labels = Label.objects.all()
-        space_data = SpaceListSerializer(space).data
-        return render(
-            request,
-            "spacePosts.html",
-            {
-                "space": space_data,
-                "user_liked_posts":user_liked_posts,
-                "user_data":user_data,
-                "user_bookmarked_posts":user_bookmarked_posts,
-                "labels": labels,
-                "owner": user.first_name + " " + user.last_name,
-                "DOMAIN_URL": DOMAIN_URL,
-            },
-        )
+
+        return redirect("/feed/space/" + str(space.id) + "/")
+    
+
     def retrieve(self, request, *args, **kwargs):
         space = self.get_object()
         data = SpaceListSerializer(space).data
@@ -739,40 +723,10 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.liked_by.add(user)
         post.save()
-        data = Post.objects.all().order_by("-id")
-        posts = PostListSerializer(data, many=True).data
-        labels=Label.objects.all()
 
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
-        if post.space:
-            space_obj = Space.objects.get(id=post.space.id)
-            space = SpaceListSerializer(space_obj).data
-            return render(
-                request,
-                "spacePosts.html",
-                {
-                    "space":space,
-                    "posts": posts,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
-        else:
-            return render(
-                request,
-                "posts.html",
-                {
-                    "posts": posts,
-                    "labels": labels,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
+        previous_url = request.META.get('HTTP_REFERER')
+
+        return redirect(previous_url)
 
 
     @action(detail=True, methods=["get"], name="Like Post")
@@ -781,22 +735,11 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.liked_by.remove(user)
         post.save()
-        data = Post.objects.filter(liked_by__id=user.id).order_by("-id")
-        posts = PostListSerializer(data, many=True).data
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data    
-        # return Response({"detail":"Liked succesfully"},status=200)
-        return render(
-            request,
-            "likedPosts.html",
-            {
-                "posts": posts,
-                "user_liked_posts":user_liked_posts,
-                "user_bookmarked_posts":user_bookmarked_posts,
-                "owner": user.first_name + " " + user.last_name,
-                "DOMAIN_URL": DOMAIN_URL,
-            },
-        )
+
+        previous_url = request.META.get('HTTP_REFERER')
+
+        return redirect(previous_url)
+
 
     @action(detail=True, methods=["get"], name="Like Post")
     def bookmark_post(self, request, pk=None):
@@ -804,39 +747,11 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.bookmarked_by.add(user)
         post.save()
-        labels=Label.objects.all()
-        data = Post.objects.all().order_by("-id")
-        posts = PostListSerializer(data, many=True).data
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data
-        if post.space:
-            space_obj = Space.objects.get(id=post.space.id)
-            space = SpaceListSerializer(space_obj).data
-            return render(
-                request,
-                "spacePosts.html",
-                {
-                    "space":space,
-                    "posts": posts,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
-        else:
-            return render(
-                request,
-                "posts.html",
-                {
-                    "posts": posts,
-                    "labels": labels,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
+
+        previous_url = request.META.get('HTTP_REFERER')
+
+        return redirect(previous_url)
+
 
     @action(detail=True, methods=["get"], name="Like Post")
     def undo_bookmark_post(self, request, pk=None):
@@ -844,22 +759,11 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.bookmarked_by.remove(user)
         post.save()
-        data = Post.objects.filter(bookmarked_by__id=user.id).order_by("-id")
-        posts = PostListSerializer(data, many=True).data
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data    
-        # return Response({"detail":"Liked succesfully"},status=200)
-        return render(
-            request,
-            "bookmarkedPosts.html",
-            {
-                "posts": posts,
-                "user_liked_posts":user_liked_posts,
-                "user_bookmarked_posts":user_bookmarked_posts,
-                "owner": user.first_name + " " + user.last_name,
-                "DOMAIN_URL": DOMAIN_URL,
-            },
-        )
+
+        previous_url = request.META.get('HTTP_REFERER')
+
+        return redirect(previous_url)
+
 
     @action(detail=False, methods=["get"], name="Liked Posts")
     def liked_posts(self, request, pk=None):
@@ -939,53 +843,101 @@ class PostViewSet(viewsets.ModelViewSet):
     def search_request(self, request, pk=None):
         user = request.user
         data = request.data
-        search_keyword = data["search_keyword"]
+        search_any_keyword = data["keyword"]
+        search_keyword = data.get("search_keyword")
         space_check_box = data.get("space_check_box")
         post_check_box = data.get("post_check_box")
         user_check_box = data.get("user_check_box")
+        semantic_check_box =  data.get("semantic_check_box")
 
-        if space_check_box and not (post_check_box and user_check_box):
+        post_data=None
+        user_data=None
+        space_data=None
+
+        if space_check_box:
             space_data = Space.objects.filter(
-            Q(title__icontains=search_keyword) | Q(description__contains=search_keyword)
-        ).distinct()
-            post_data=None
-            user_data=None
-
-        elif post_check_box and not (space_check_box and user_check_box):
-            post_data = Post.objects.filter(
-                Q(title__icontains=search_keyword)
-                | Q(description__icontains=search_keyword)
-                | Q(platform__icontains=search_keyword)
-                | Q(link__icontains=search_keyword)
-                | Q(space__title__icontains=search_keyword)
-                | Q(label__name__icontains=search_keyword)
-            ).distinct()
-            space_data=None
-            user_data=None
-        elif user_check_box and not (space_check_box and post_check_box):
-            user_data=User.objects.filter(
-                Q(first_name__icontains=search_keyword)
-                | Q(last_name__icontains=search_keyword)).distinct()
+            Q(title__icontains=search_any_keyword) | Q(description__contains=search_any_keyword)).distinct()
+   
+        if post_check_box or semantic_check_box:
+            if post_check_box and not semantic_check_box:
+                post_data = Post.objects.filter(
+                    Q(title__icontains=search_any_keyword)
+                    | Q(description__icontains=search_any_keyword)
+                    | Q(platform__icontains=search_any_keyword)
+                    | Q(link__icontains=search_any_keyword)
+                    | Q(space__title__icontains=search_any_keyword)
+                    | Q(label__name__icontains=search_any_keyword)
+                ).distinct()
             
-            space_data=None
-            post_data=None
+            elif semantic_check_box and not post_check_box:
+                print("asdf",request.data.get("selected_semantic_tags"))
 
-        else:
+                if  request.data.get("selected_semantic_tags") is not None and request.data.get("selected_semantic_tags")!='':
+                    labels=request.data.get("selected_semantic_tags").split("item:")
+                    print(labels)
+                    for label in labels:
+                        if label is not None and label!="":
+                            information = label.split("|")
+                            name=information[0]
+                            description=information[1]
+                            qid=information[2]
+                            print(name,description)
+                            try:
+                                label = Label.objects.get(name=name,description=description,label_type="Semantic",qid=qid)
+                                print("try",label)
+                                post_data = Post.objects.filter(
+                                        Q(label__id = label.id)
+                                    ).distinct()
+                            except:
+                                post_data = None
+
+            else:
+                if  request.data.get("selected_semantic_tags") is not None and request.data.get("selected_semantic_tags")!='':
+                    labels=request.data.get("selected_semantic_tags").split("item:")
+                    print(labels)
+                    for label in labels:
+                        if label is not None and label!="":
+                            information = label.split("|")
+                            name=information[0]
+                            description=information[1]
+                            qid=information[2]
+                            print(name,description)
+                            try:
+                                label = Label.objects.get(name=name,description=description,label_type="Semantic",qid=qid)
+                                print("try",label)
+                                post_data = Post.objects.filter(
+                                         Q(title__icontains=search_any_keyword)
+                                        | Q(description__icontains=search_any_keyword)
+                                        | Q(platform__icontains=search_any_keyword)
+                                        | Q(link__icontains=search_any_keyword)
+                                        | Q(space__title__icontains=search_any_keyword)
+                                        | Q(label__name__icontains=search_any_keyword)
+                                        | Q(label__id = label.id)
+                                    ).distinct()
+                            except:
+                                post_data = None        
+
+        if user_check_box:
+            user_data=User.objects.filter(
+                Q(first_name__icontains=search_any_keyword)
+                | Q(last_name__icontains=search_any_keyword)
+                | Q(description__icontains=search_any_keyword)).distinct()    
+        
+        if not (user_check_box or space_check_box or post_check_box or semantic_check_box):
             space_data = Space.objects.filter(
-            Q(title__contains=search_keyword) | Q(description__contains=search_keyword)
-            ).distinct()
+            Q(title__icontains=search_any_keyword) | Q(description__contains=search_any_keyword)).distinct()
             post_data = Post.objects.filter(
-                Q(title__icontains=search_keyword)
-                | Q(description__icontains=search_keyword)
-                | Q(platform__icontains=search_keyword)
-                | Q(link__icontains=search_keyword)
-                | Q(space__title__icontains=search_keyword)
-                | Q(label__name__icontains=search_keyword)
+                Q(title__icontains=search_any_keyword)
+                | Q(description__icontains=search_any_keyword)
+                | Q(platform__icontains=search_any_keyword)
+                | Q(link__icontains=search_any_keyword)
+                | Q(space__title__icontains=search_any_keyword)
+                | Q(label__name__icontains=search_any_keyword)
             ).distinct()
             user_data=User.objects.filter(
-                Q(first_name__icontains=search_keyword)
-                | Q(last_name__icontains=search_keyword)
-                | Q(description__icontains=search_keyword)).distinct()
+                Q(first_name__icontains=search_any_keyword)
+                | Q(last_name__icontains=search_any_keyword)
+                | Q(description__icontains=search_any_keyword)).distinct()   
 
         posts = PostListSerializer(post_data, many=True).data
         spaces = SpaceListSerializer(space_data, many=True).data
@@ -1097,41 +1049,14 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         user = request.user
         description = request.GET.get("value")
-        print(description)
         user_obj = User.objects.get(id=user.id)
-        report_obj = Report.objects.create(user=user_obj,post=post,description=description)
-        user_liked_posts = PostListSerializer(Post.objects.filter(liked_by__id=user.id),many=True).data
-        user_bookmarked_posts = PostListSerializer(Post.objects.filter(bookmarked_by__id=user.id),many=True).data 
-        if post.space:
-            space = SpaceListSerializer(Space.objects.get(id=post.space.id)).data
-            data = PostListSerializer(Post.objects.filter(space=space["id"]),many=True).data
-            return render(
-                request,
-                "spacePosts.html",
-                {
-                    "space":space,
-                    "posts": data,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
-        else:
-            posts=PostListSerializer(Post.objects.all(),many=True).data
-            labels=Label.objects.all()
-            return render(
-                request,
-                "posts.html",
-                {
-                    "posts": posts,
-                    "user_liked_posts":user_liked_posts,
-                    "user_bookmarked_posts":user_bookmarked_posts,
-                    "labels": labels,
-                    "owner": user.first_name + " " + user.last_name,
-                    "DOMAIN_URL": DOMAIN_URL,
-                },
-            )
+        Report.objects.create(user=user_obj,post=post,description=description)
+        
+        previous_url = request.META.get('HTTP_REFERER')
+
+        return redirect(previous_url)
+
+
     @action(detail=True, methods=["get"], name="Like Post")
     def edit_form(self, request, pk=None):
         post_obj = self.get_object()
@@ -1218,7 +1143,6 @@ class PostViewSet(viewsets.ModelViewSet):
         data = Post.objects.all().order_by("-id")
         labels = Label.objects.all()
         posts = PostListSerializer(data, many=True).data
-        print('is_confirmed:', request.data.get("is_confirmed"))
 
         if request.user.is_anonymous == False:
             user = request.user

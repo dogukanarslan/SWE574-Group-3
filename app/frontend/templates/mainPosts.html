@@ -17,6 +17,7 @@
         <h5 class="card-title">{{ post.owner.first_name }} {{ post.owner.last_name }}</h5>
         <p class="card-text">{{ post.platform }}</p>
         <p class="card-text">{{ post.created_time }}</p>
+        <p>Likes: <span class="like-count">{{ post.liked_by|length }}</span></p>
         <p class="card-text">{{ post.title }}</p>
         <p class="card-text">{{ post.description }}</p>
         <a class="btn btn-outline-dark" href='{{post.post_link}}' target="_blank">{{post.post_link}}</a>
