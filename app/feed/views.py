@@ -69,13 +69,13 @@ def explore(request):
         # let's check if post is shared by someone the user follows
         if post.owner in followings.all():
             score += 30
-            print("30 points since post owner is followed.")
+
 
         # let's check how recent the post is
         days_since_creation = (datetime.date.today() - post.created_time.date()).days
         if days_since_creation == 0:
             score += 20
-            print("10 points since recency")
+
         elif days_since_creation <= 7:
             score += 10
         elif days_since_creation <= 30:
@@ -124,9 +124,9 @@ def explore(request):
 
         # Check if the post has annotations related to user's space.
         for annotation in annotations:
-            print(annotation.body.get('value'))
+            #print(annotation.body.get('value'))
             if annotation.body.get('value').lower() in subscribed_space_names:
-                print(annotation.body.get('value').lower())
+                #print(annotation.body.get('value').lower())
                 score += 50
 
         recommended_posts.append([post, score])
